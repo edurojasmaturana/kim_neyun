@@ -1,0 +1,34 @@
+# --- Core Environment ---
+numpy==2.0.2
+pandas==2.2.2
+scikit-learn==1.6.1
+joblib==1.5.3
+scipy==1.15.0
+
+# --- Deep Learning & ML Engines ---
+torch==2.10.0
+tensorflow==2.19.0
+xgboost==3.2.0
+shap==0.51.0
+transformers==4.57.6
+# Instalación directa del motor Chronos
+git+https://github.com/amazon-science/chronos-forecasting.git
+
+# --- Deployment & API ---
+streamlit==1.42.0
+fastapi==0.115.0
+uvicorn==0.34.0
+pydantic==2.10.0
+requests==2.32.0
+
+# --- Climate & Weather ---
+openmeteo-requests==1.3.0
+requests-cache==1.2.1
+retry-requests==2.0.0
+
+# --- Visualization ---
+plotly==6.0.0
+matplotlib==3.10.0
+seaborn==0.13.2
+
+epiweeks
