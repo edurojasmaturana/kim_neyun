@@ -25,3 +25,8 @@ infra/tfplan.out
 
 # SO / editores
 .DS_Store
+
+# Cobertura de tests (pytest-cov)
+.coverage
+htmlcov/
+.pytest_cache/
