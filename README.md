@@ -147,6 +147,111 @@ docker-compose.yml   Entorno local
 Makefile             Atajos
 ```
 
+## Modelo de datos
+
+El sistema usa **dos almacenes con propósitos distintos** y un **CSV de entrada**:
+
+- **DynamoDB** (`kim-neyun-predicciones`) — resultados de inferencia precomputados
+  que la API solo lee. Tabla única, *PAY_PER_REQUEST*, acceso por clave (sin scans).
+- **Postgres / Aurora Serverless v2** (`users`) — autenticación (JWT). Local con
+  Postgres; en AWS con Aurora vía Data API (el Lambda no entra a la VPC).
+- **CSV histórico DEIS** (`data/…csv`) — fuente de la serie de tiempo que alimenta
+  el batch; no es una BD, se carga en memoria por el job de inferencia.
+
+```mermaid
+erDiagram
+    PREDICCION_SEMANA }o--|| HOSPITAL : "para"
+    PROYECCION_ANUAL  }o--|| HOSPITAL : "para"
+    CSV_DEIS          }o--|| HOSPITAL : "historia de"
+    USER ||--o{ SESION_JWT : "emite"
+
+    HOSPITAL {
+        string nombre PK "1 de los 12 centros (catalog.HOSPITALES)"
+    }
+
+    PREDICCION_SEMANA {
+        string pk PK "hospital"
+        string sk PK "SEM#<anio>#<semana>"
+        string tipo "semana"
+        int    anio
+        int    semana_epi
+        json   data "total, nivel_alerta, temp_ref, estimaciones"
+    }
+
+    PROYECCION_ANUAL {
+        string pk PK "hospital"
+        string sk PK "PROY#<anio>"
+        string tipo "proyeccion"
+        int    anio
+        json   data "semanas[], curva_ia[], curva_real[], total_ia"
+    }
+
+    USER {
+        string id PK "uuid4"
+        string email UK "único, indexado"
+        string password_hash
+        string full_name
+        string role "admin | viewer"
+        bool   is_active
+        datetime created_at
+        datetime updated_at
+    }
+
+    CSV_DEIS {
+        int    Anio
+        int    SemanaEstadistica
+        string EstablecimientoGlosa "= hospital"
+        int    Total_Consultations
+        int    grupos_etarios "NumMenor1Anio … Num65oMas"
+        float  causas "Cause_Pneumonia, Cause_Influenza, …"
+    }
+```
+
+### DynamoDB · `kim-neyun-predicciones`
+
+Tabla única con dos clases de ítem distinguidas por el prefijo del *sort key*. El
+payload variable va serializado como JSON en el atributo `data` para evitar
+problemas de tipos (`Decimal`/`float`) y conservar el mismo *shape* del PoC.
+
+| Ítem | `pk` | `sk` | Atributos | `data` (JSON) |
+|------|------|------|-----------|---------------|
+| Predicción semanal (táctico) | `<hospital>` | `SEM#<anio>#<semana>` | `tipo="semana"`, `anio`, `semana_epi` | `total`, `nivel_alerta`, `temp_ref`, `estimaciones` |
+| Proyección anual (estratégico) | `<hospital>` | `PROY#<anio>` | `tipo="proyeccion"`, `anio` | `semanas[]`, `curva_ia[]`, `curva_real[]`, `total_ia` |
+
+- **`estimaciones`** = `{ "Causas": {<causa>: int}, "Edades": {<grupo>: int}, "Total": int }`.
+- **`nivel_alerta`** ∈ `NORMAL` · `MODERADO` · `CRITICO` (umbral por percentiles del
+  histórico de cada centro; ver `app/shared/alertas.py`).
+- **`curva_real`** puede traer `null` en semanas sin dato histórico.
+
+Acceso típico (sin scans): `GetItem(pk=hospital, sk="SEM#2026#24")`.
+Ver `app/shared/repository.py`.
+
+### Postgres / Aurora · tabla `users`
+
+Autenticación de la API. Definición en `app/shared/users_db.py` (modelo SQLAlchemy)
+y migración `app/alembic/versions/0001_create_users.py`.
+
+| Columna | Tipo | Notas |
+|---------|------|-------|
+| `id` | `varchar(36)` PK | uuid4 |
+| `email` | `varchar(320)` | único, indexado |
+| `password_hash` | `varchar(255)` | bcrypt/hash |
+| `full_name` | `varchar(255)` | default `""` |
+| `role` | `varchar(20)` | `admin` (alta de usuarios) · `viewer` (solo lee) |
+| `is_active` | `boolean` | default `true` |
+| `created_at` / `updated_at` | `timestamptz` | UTC |
+
+### CSV histórico DEIS · `data/…csv`
+
+Entrada del batch (una fila = centro × semana epidemiológica). Columnas:
+`Anio`, `SemanaEstadistica`, `EstablecimientoGlosa`, `Total_Consultations`,
+grupos etarios (`NumMenor1Anio`, `Num1a4Anios`, `Num5a14Anios`, `Num15a64Anios`,
+`Num65oMas`) y causas (`Cause_Acute_Bronchitis/Bronchiolitis`,
+`Cause_Bronchial_Obstructive_Crisis`, `Cause_COVID-19_(Confirmed)`,
+`Cause_COVID-19_(Suspected)`, `Cause_Influenza`, `Cause_Other_Respiratory_Causes`,
+`Cause_Pneumonia`, `Cause_Upper_Respiratory_Infection`). El catálogo de centros y
+targets vive en `app/shared/catalog.py`.
+
 ## Quick start (local)
 
 Requisitos: Docker. Antes de correr el job, deja tus artefactos en `./models/`
