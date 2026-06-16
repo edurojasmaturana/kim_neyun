@@ -1,0 +1,15 @@
+# Dependencias de desarrollo y testing del backend.
+# Instalar junto con api/requirements.txt:
+#   pip install -r api/requirements.txt -r requirements-dev.txt
+# (no requiere las dependencias pesadas de inference: torch, transformers, etc.)
+
+pytest==8.3.4
+pytest-cov==6.0.0
+httpx==0.28.1          # cliente que usa fastapi.testclient.TestClient
+moto[dynamodb]>=5.0    # DynamoDB simulado en memoria para tests de repository
+
+# Usadas por shared/alertas.py en los tests de lógica de negocio.
+# Sin pin estricto: el entorno de test usa wheels del intérprete local
+# (las versiones de runtime se fijan en inference/requirements.txt).
+numpy>=2.1
+pandas>=2.2.3

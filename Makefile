@@ -1,5 +1,5 @@
 # Atajos de desarrollo y despliegue de KIM-NEYÜN.
-.PHONY: help up down logs batch ddb-scan build-images tf-init tf-plan tf-apply lint \
+.PHONY: help up down logs batch ddb-scan build-images tf-init tf-plan tf-apply lint test \
         localstack-up localstack-down tf-local-plan tf-local-apply \
         migrate seed-admin auth-init
 
@@ -10,6 +10,7 @@ help:
 	@echo "logs         - logs del entorno local"
 	@echo "ddb-scan     - scan de la tabla DynamoDB local"
 	@echo "lint         - compila (py_compile) todo el paquete app/"
+	@echo "test         - corre la suite de tests del backend (pytest + cobertura)"
 	@echo "migrate      - aplica las migraciones de Alembic (tabla users) en Postgres local"
 	@echo "seed-admin   - crea el usuario admin (ADMIN_EMAIL/ADMIN_PASSWORD, o defaults de dev)"
 	@echo "auth-init    - migrate + seed-admin (deja la auth lista tras 'make up')"
@@ -52,6 +53,12 @@ auth-init: migrate seed-admin
 
 lint:
 	python -m compileall -q app
+
+# Tests del backend (verde + amarillo: shared/ y api/). No requiere AWS ni
+# Postgres: usa SQLite en memoria + moto. Instala antes las deps de dev:
+#   pip install -r app/api/requirements.txt -r app/requirements-dev.txt
+test:
+	python -m pytest
 
 tf-init:
 	cd infra && terraform init
