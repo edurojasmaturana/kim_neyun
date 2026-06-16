@@ -59,6 +59,10 @@ resource "aws_lambda_function" "api" {
       AURORA_SECRET_ARN  = aws_secretsmanager_secret.db.arn
       AURORA_DATABASE    = var.aurora_database
       JWT_SECRET         = random_password.jwt.result
+      # Backoffice /admin: secreto de sesión + base pública para el enlace de
+      # invitación (la propia URL del API Gateway sirve /invitaciones/aceptar).
+      ADMIN_SESSION_SECRET = random_password.admin_session.result
+      ACCEPT_BASE_URL      = aws_apigatewayv2_stage.default.invoke_url
     }
   }
 

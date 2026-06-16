@@ -58,6 +58,16 @@ JWT_SECRET = os.environ.get("JWT_SECRET", "dev-insecure-change-me")
 JWT_ALG = os.environ.get("JWT_ALG", "HS256")
 ACCESS_TOKEN_TTL_MIN = int(os.environ.get("ACCESS_TOKEN_TTL_MIN", "480"))  # 8 h
 
+# --- Backoffice (SQLAdmin) ---
+# Secreto para firmar la cookie de sesión del panel /admin. En AWS se inyecta
+# desde Secrets Manager; en local hay un default SOLO para desarrollo.
+ADMIN_SESSION_SECRET = os.environ.get("ADMIN_SESSION_SECRET", "dev-insecure-admin-session")
+# Base pública para construir el enlace de invitación (sin barra final). Local:
+# la propia API; AWS: la URL del API Gateway que sirve /invitaciones/aceptar.
+ACCEPT_BASE_URL = os.environ.get("ACCEPT_BASE_URL", "http://localhost:8000").rstrip("/")
+# Vigencia de una invitación, en horas (default 7 días).
+INVITATION_TTL_HOURS = int(os.environ.get("INVITATION_TTL_HOURS", "168"))
+
 # --- Parámetros de negocio ---
 # Semáforo de alerta de 3 niveles (NORMAL/MODERADO/CRITICO). Los umbrales se
 # derivan del histórico semanal de CADA centro vía percentiles (un volumen
