@@ -50,6 +50,42 @@ class User(Base):
     )
 
 
+class Invitation(Base):
+    """Invitación para dar de alta un usuario sin que el admin fije su contraseña.
+
+    El admin genera la invitación desde el backoffice y comparte el enlace; el
+    invitado abre el enlace y crea su propia contraseña. Solo se guarda el
+    SHA-256 del token (`token_hash`): el token en claro vive únicamente en el
+    enlace. Las invitaciones son de un solo uso (`accepted_at`) y caducan
+    (`expires_at`).
+    """
+
+    __tablename__ = "invitations"
+
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    email: Mapped[str] = mapped_column(String(320), index=True, nullable=False)
+    role: Mapped[str] = mapped_column(String(20), nullable=False, default="viewer")
+    # SHA-256 hex del token (64 chars). Indexado para resolver el enlace por hash.
+    token_hash: Mapped[str] = mapped_column(
+        String(64), unique=True, index=True, nullable=False
+    )
+    expires_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
+    accepted_at: Mapped[datetime.datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    # Email del admin que la creó (auditoría).
+    created_by: Mapped[str] = mapped_column(String(320), nullable=False, default="")
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.datetime.now(datetime.timezone.utc),
+    )
+
+
 @functools.lru_cache(maxsize=1)
 def get_engine():
     """Construye el engine según el entorno (Data API en AWS, psycopg2 en local)."""

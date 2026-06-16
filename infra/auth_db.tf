@@ -86,6 +86,22 @@ resource "aws_secretsmanager_secret_version" "jwt" {
   secret_string = random_password.jwt.result
 }
 
+# Secreto para firmar la cookie de sesión del backoffice /admin (SQLAdmin).
+resource "random_password" "admin_session" {
+  length  = 48
+  special = false
+}
+
+resource "aws_secretsmanager_secret" "admin_session" {
+  name = "${local.name}-admin-session"
+  tags = local.tags
+}
+
+resource "aws_secretsmanager_secret_version" "admin_session" {
+  secret_id     = aws_secretsmanager_secret.admin_session.id
+  secret_string = random_password.admin_session.result
+}
+
 # --- Cluster Aurora Serverless v2 -------------------------------------------
 
 resource "aws_rds_cluster" "users" {

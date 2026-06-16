@@ -20,7 +20,8 @@ from fastapi import Depends, FastAPI, HTTPException
 from mangum import Mangum
 from pydantic import BaseModel, Field
 
-from api import auth
+from api import auth, invitations
+from api.admin import setup_admin
 from api.auth import get_current_user
 from shared import repository
 from shared.catalog import HOSPITALES
@@ -66,6 +67,12 @@ app = FastAPI(
 
 # Router de autenticación (login, /me, alta de usuarios).
 app.include_router(auth.router)
+# Flujo público de aceptación de invitaciones (el invitado fija su contraseña).
+app.include_router(invitations.router)
+
+# Backoffice de administración (SQLAdmin) en /admin: gestión de usuarios e
+# invitaciones, restringido a rol admin.
+setup_admin(app)
 
 
 # --- Modelos de entrada -----------------------------------------------------
