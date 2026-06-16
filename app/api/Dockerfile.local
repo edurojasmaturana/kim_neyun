@@ -1,0 +1,19 @@
+# Imagen de la API para desarrollo local (uvicorn, no Lambda).
+# Build context = carpeta app/  ->  docker build -f api/Dockerfile.local .
+FROM python:3.11-slim
+
+ENV PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1
+WORKDIR /srv
+
+COPY api/requirements.txt ./
+RUN pip install -r requirements.txt
+
+COPY shared/ ./shared/
+COPY api/ ./api/
+# Migraciones y seed de la base de usuarios (se corren con `docker compose exec api ...`).
+COPY alembic.ini ./alembic.ini
+COPY alembic/ ./alembic/
+COPY scripts/ ./scripts/
+
+EXPOSE 8000
+CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]

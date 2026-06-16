@@ -1,0 +1,12 @@
+# Copia a terraform.tfvars y ajusta lo que necesites.
+region           = "us-east-1"
+project          = "kim-neyun"
+image_tag        = "latest"
+
+# Job batch: lunes 09:00 hora Chile.
+batch_schedule   = "cron(0 9 ? * MON *)"
+batch_timezone   = "America/Santiago"
+
+anios_proyeccion = "2024,2025,2026"
+alerta_threshold = 150
+

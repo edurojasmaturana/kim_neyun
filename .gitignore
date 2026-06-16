@@ -1,0 +1,27 @@
+# Artefactos / datos pesados (no versionar)
+models/Modelos_Lags/
+models/Modelos_NoLags/
+data/*.csv
+# mismos binarios en el PoC autocontenido (descargado de HF)
+poc/Modelos_Lags/
+poc/Modelos_NoLags/
+poc/data/*.csv
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.cache/
+
+# Terraform
+infra/**/.terraform/
+infra/**/*.tfstate
+infra/**/*.tfstate.*
+infra/**/.terraform.lock.hcl
+infra/**/tfplan.out
+infra/tfplan.out
+*.tfvars
+!*.tfvars.example
+
+# SO / editores
+.DS_Store

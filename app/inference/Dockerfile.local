@@ -1,0 +1,14 @@
+# Imagen del job batch para desarrollo local (docker-compose).
+# Build context = carpeta app/  ->  docker build -f inference/Dockerfile.local .
+FROM python:3.11-slim
+
+ENV PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1 MODELS_DIR=/srv/models
+WORKDIR /srv
+
+COPY inference/requirements.txt ./requirements.txt
+RUN pip install -r requirements.txt
+
+COPY shared/ ./shared/
+COPY inference/ ./inference/
+
+ENTRYPOINT ["python", "-m", "inference.run_batch"]

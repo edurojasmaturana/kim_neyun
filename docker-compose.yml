@@ -1,0 +1,98 @@
+# Entorno de desarrollo local de KIM-NEYÜN (full serverless emulado).
+#
+#   docker compose up -d dynamodb api frontend          # BD + API + dashboard
+#   docker compose --profile batch run --rm batch       # corre el job de inferencia
+#
+# Requisitos para el batch: deja tus artefactos en ./models (Modelos_Lags/,
+# Modelos_NoLags/) y el CSV histórico en ./data/.
+
+services:
+  dynamodb:
+    image: amazon/dynamodb-local:latest
+    command: "-jar DynamoDBLocal.jar -inMemory -sharedDb"
+    ports:
+      - "8001:8000" # 8000 host queda libre para la API
+
+  # Base de usuarios (emula Aurora Postgres; en AWS es Aurora Serverless v2).
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: kim
+      POSTGRES_PASSWORD: kim
+      POSTGRES_DB: kim_users
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kim -d kim_users"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build:
+      context: ./app
+      dockerfile: api/Dockerfile.local
+    environment:
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: local
+      AWS_SECRET_ACCESS_KEY: local
+      DYNAMODB_ENDPOINT: http://dynamodb:8000
+      DYNAMODB_TABLE: kim-neyun-predicciones
+      USERS_DATABASE_URL: postgresql+psycopg2://kim:kim@postgres:5432/kim_users
+      JWT_SECRET: dev-insecure-change-me
+    ports:
+      - "8000:8000"
+    depends_on:
+      dynamodb:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./app
+      dockerfile: frontend/Dockerfile
+    environment:
+      API_BASE_URL: http://api:8000
+    ports:
+      - "8501:8501"
+    depends_on:
+      - api
+
+  # Job batch: no se levanta con `up`; se corre bajo demanda con --profile batch.
+  batch:
+    profiles: ["batch"]
+    build:
+      context: ./app
+      dockerfile: inference/Dockerfile.local
+    environment:
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: local
+      AWS_SECRET_ACCESS_KEY: local
+      DYNAMODB_ENDPOINT: http://dynamodb:8000
+      DYNAMODB_TABLE: kim-neyun-predicciones
+      MODELS_DIR: /srv/models
+      HISTORIA_CSV: /srv/data/API_Epidemiologia_Temuco_Padre_Las_Casas.csv
+      CHRONOS_MODEL: amazon/chronos-t5-small
+      # ANIOS_PROYECCION: "2024,2025,2026"
+    volumes:
+      - ./models:/srv/models:ro
+      - ./data:/srv/data:ro
+    depends_on:
+      - dynamodb
+
+  # Emulador de AWS para "simular" Terraform en local (perfil opcional).
+  localstack:
+    profiles: ["localstack"]
+    image: localstack/localstack:latest
+    ports:
+      - "4566:4566"
+    environment:
+      DEBUG: "0"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+
+volumes:
+  pgdata:

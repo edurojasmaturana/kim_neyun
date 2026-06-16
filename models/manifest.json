@@ -1,0 +1,321 @@
+{
+  "files": {
+    "Modelos_Lags/PCA_Cause_Acute_Bronchitis_Bronchiolitis.pkl": {
+      "bytes": 5335,
+      "sha256": "639aac4c72c4845012da3b5c60cad49fc8fa282c53c048ba1f31c356d3bae8f1"
+    },
+    "Modelos_Lags/PCA_Cause_Bronchial_Obstructive_Crisis.pkl": {
+      "bytes": 5335,
+      "sha256": "639aac4c72c4845012da3b5c60cad49fc8fa282c53c048ba1f31c356d3bae8f1"
+    },
+    "Modelos_Lags/PCA_Cause_COVID-19_Confirmed.pkl": {
+      "bytes": 5335,
+      "sha256": "639aac4c72c4845012da3b5c60cad49fc8fa282c53c048ba1f31c356d3bae8f1"
+    },
+    "Modelos_Lags/PCA_Cause_Influenza.pkl": {
+      "bytes": 5335,
+      "sha256": "639aac4c72c4845012da3b5c60cad49fc8fa282c53c048ba1f31c356d3bae8f1"
+    },
+    "Modelos_Lags/PCA_Cause_Other_Respiratory_Causes.pkl": {
+      "bytes": 5335,
+      "sha256": "639aac4c72c4845012da3b5c60cad49fc8fa282c53c048ba1f31c356d3bae8f1"
+    },
+    "Modelos_Lags/PCA_Cause_Pneumonia.pkl": {
+      "bytes": 5335,
+      "sha256": "639aac4c72c4845012da3b5c60cad49fc8fa282c53c048ba1f31c356d3bae8f1"
+    },
+    "Modelos_Lags/PCA_Cause_Upper_Respiratory_Infection.pkl": {
+      "bytes": 5335,
+      "sha256": "639aac4c72c4845012da3b5c60cad49fc8fa282c53c048ba1f31c356d3bae8f1"
+    },
+    "Modelos_Lags/PCA_Num15a64Anios.pkl": {
+      "bytes": 5335,
+      "sha256": "639aac4c72c4845012da3b5c60cad49fc8fa282c53c048ba1f31c356d3bae8f1"
+    },
+    "Modelos_Lags/PCA_Num1a4Anios.pkl": {
+      "bytes": 5335,
+      "sha256": "639aac4c72c4845012da3b5c60cad49fc8fa282c53c048ba1f31c356d3bae8f1"
+    },
+    "Modelos_Lags/PCA_Num5a14Anios.pkl": {
+      "bytes": 5335,
+      "sha256": "639aac4c72c4845012da3b5c60cad49fc8fa282c53c048ba1f31c356d3bae8f1"
+    },
+    "Modelos_Lags/PCA_Num65oMas.pkl": {
+      "bytes": 5335,
+      "sha256": "639aac4c72c4845012da3b5c60cad49fc8fa282c53c048ba1f31c356d3bae8f1"
+    },
+    "Modelos_Lags/PCA_NumMenor1Anio.pkl": {
+      "bytes": 5335,
+      "sha256": "639aac4c72c4845012da3b5c60cad49fc8fa282c53c048ba1f31c356d3bae8f1"
+    },
+    "Modelos_Lags/PCA_Total_Consultations.pkl": {
+      "bytes": 5335,
+      "sha256": "639aac4c72c4845012da3b5c60cad49fc8fa282c53c048ba1f31c356d3bae8f1"
+    },
+    "Modelos_Lags/Scaler_Cause_Acute_Bronchitis_Bronchiolitis.pkl": {
+      "bytes": 2463,
+      "sha256": "1ed0b9e94ea1163ca87d565a5ae6caa073ae9df7e74f29229aaa1b7b6651e02f"
+    },
+    "Modelos_Lags/Scaler_Cause_Bronchial_Obstructive_Crisis.pkl": {
+      "bytes": 2463,
+      "sha256": "1ed0b9e94ea1163ca87d565a5ae6caa073ae9df7e74f29229aaa1b7b6651e02f"
+    },
+    "Modelos_Lags/Scaler_Cause_COVID-19_Confirmed.pkl": {
+      "bytes": 2463,
+      "sha256": "1ed0b9e94ea1163ca87d565a5ae6caa073ae9df7e74f29229aaa1b7b6651e02f"
+    },
+    "Modelos_Lags/Scaler_Cause_Influenza.pkl": {
+      "bytes": 2463,
+      "sha256": "1ed0b9e94ea1163ca87d565a5ae6caa073ae9df7e74f29229aaa1b7b6651e02f"
+    },
+    "Modelos_Lags/Scaler_Cause_Other_Respiratory_Causes.pkl": {
+      "bytes": 2463,
+      "sha256": "1ed0b9e94ea1163ca87d565a5ae6caa073ae9df7e74f29229aaa1b7b6651e02f"
+    },
+    "Modelos_Lags/Scaler_Cause_Pneumonia.pkl": {
+      "bytes": 2463,
+      "sha256": "1ed0b9e94ea1163ca87d565a5ae6caa073ae9df7e74f29229aaa1b7b6651e02f"
+    },
+    "Modelos_Lags/Scaler_Cause_Upper_Respiratory_Infection.pkl": {
+      "bytes": 2463,
+      "sha256": "1ed0b9e94ea1163ca87d565a5ae6caa073ae9df7e74f29229aaa1b7b6651e02f"
+    },
+    "Modelos_Lags/Scaler_Num15a64Anios.pkl": {
+      "bytes": 2463,
+      "sha256": "1ed0b9e94ea1163ca87d565a5ae6caa073ae9df7e74f29229aaa1b7b6651e02f"
+    },
+    "Modelos_Lags/Scaler_Num1a4Anios.pkl": {
+      "bytes": 2463,
+      "sha256": "1ed0b9e94ea1163ca87d565a5ae6caa073ae9df7e74f29229aaa1b7b6651e02f"
+    },
+    "Modelos_Lags/Scaler_Num5a14Anios.pkl": {
+      "bytes": 2463,
+      "sha256": "1ed0b9e94ea1163ca87d565a5ae6caa073ae9df7e74f29229aaa1b7b6651e02f"
+    },
+    "Modelos_Lags/Scaler_Num65oMas.pkl": {
+      "bytes": 2463,
+      "sha256": "1ed0b9e94ea1163ca87d565a5ae6caa073ae9df7e74f29229aaa1b7b6651e02f"
+    },
+    "Modelos_Lags/Scaler_NumMenor1Anio.pkl": {
+      "bytes": 2463,
+      "sha256": "1ed0b9e94ea1163ca87d565a5ae6caa073ae9df7e74f29229aaa1b7b6651e02f"
+    },
+    "Modelos_Lags/Scaler_Total_Consultations.pkl": {
+      "bytes": 2463,
+      "sha256": "1ed0b9e94ea1163ca87d565a5ae6caa073ae9df7e74f29229aaa1b7b6651e02f"
+    },
+    "Modelos_Lags/XGBoost_Hybrid_Cause_Acute_Bronchitis_Bronchiolitis.pkl": {
+      "bytes": 61077,
+      "sha256": "ddf3829012e02c8b80bdd40a4d01ed54a936f48bf7d0c0c46c0017bfbe304931"
+    },
+    "Modelos_Lags/XGBoost_Hybrid_Cause_Bronchial_Obstructive_Crisis.pkl": {
+      "bytes": 96310,
+      "sha256": "2b2d0a25b42a99ff10dc8d90627c0fd5d32c3c1e06616765e574ea33e488f9ac"
+    },
+    "Modelos_Lags/XGBoost_Hybrid_Cause_COVID-19_Confirmed.pkl": {
+      "bytes": 59243,
+      "sha256": "7802c197861f50ab6fffc63efbf7dbdccb5ef4d05c0050a73fcf067e8cfac275"
+    },
+    "Modelos_Lags/XGBoost_Hybrid_Cause_Influenza.pkl": {
+      "bytes": 61621,
+      "sha256": "62b002b456513eb61a1bad8f26fa78c3759f2c5288d16a7934452431d2f528ec"
+    },
+    "Modelos_Lags/XGBoost_Hybrid_Cause_Other_Respiratory_Causes.pkl": {
+      "bytes": 60941,
+      "sha256": "6f7cb93f6cbad9047eb8781577c23b5c1be94c38cc3cc133e17f9e9887fd52fd"
+    },
+    "Modelos_Lags/XGBoost_Hybrid_Cause_Pneumonia.pkl": {
+      "bytes": 62435,
+      "sha256": "5a5e68f34570359c63ebb060cfebce8abaf84d0528c53e72007abcb0559dbb5f"
+    },
+    "Modelos_Lags/XGBoost_Hybrid_Cause_Upper_Respiratory_Infection.pkl": {
+      "bytes": 93452,
+      "sha256": "c03996829b01cc13f45c90211d8d87fefcf11afdc6d862e7d6fe61df4efbcd53"
+    },
+    "Modelos_Lags/XGBoost_Hybrid_Num15a64Anios.pkl": {
+      "bytes": 60533,
+      "sha256": "e29f5c7d0eefa6adcc42e23932e6c1fc8d5d25c67a9f1dd886121969fd1d1943"
+    },
+    "Modelos_Lags/XGBoost_Hybrid_Num1a4Anios.pkl": {
+      "bytes": 96446,
+      "sha256": "b27fabd2f80c1c86f2992929c93009cb26d1c5f735841f8b59b9d345c194b542"
+    },
+    "Modelos_Lags/XGBoost_Hybrid_Num5a14Anios.pkl": {
+      "bytes": 61893,
+      "sha256": "a191c627c3a465db5140e38472a6114d93510c6c555c31db3841823efab30a11"
+    },
+    "Modelos_Lags/XGBoost_Hybrid_Num65oMas.pkl": {
+      "bytes": 61825,
+      "sha256": "a8c1a62fbcb45577a0f71212ed79cebb5bca1cf96dd1fd26edaac3484328b734"
+    },
+    "Modelos_Lags/XGBoost_Hybrid_NumMenor1Anio.pkl": {
+      "bytes": 88694,
+      "sha256": "96f2986d7f8ebb72879c4e513f6de4edd83539e01e70ec2d27797110270ddd96"
+    },
+    "Modelos_Lags/XGBoost_Hybrid_Total_Consultations.pkl": {
+      "bytes": 60669,
+      "sha256": "34a8e9f77263402cc4f168b36403d2aa40c8732174686e20e1052c88ad3f18d2"
+    },
+    "Modelos_NoLags/PCA_Cause_Acute_Bronchitis_Bronchiolitis.pkl": {
+      "bytes": 1743,
+      "sha256": "cf3920a8232e4d3541f96dc2773e200ff4f4c42a4f8239ffbd72b8b7fe935057"
+    },
+    "Modelos_NoLags/PCA_Cause_Bronchial_Obstructive_Crisis.pkl": {
+      "bytes": 1743,
+      "sha256": "cf3920a8232e4d3541f96dc2773e200ff4f4c42a4f8239ffbd72b8b7fe935057"
+    },
+    "Modelos_NoLags/PCA_Cause_COVID-19_Confirmed.pkl": {
+      "bytes": 1743,
+      "sha256": "cf3920a8232e4d3541f96dc2773e200ff4f4c42a4f8239ffbd72b8b7fe935057"
+    },
+    "Modelos_NoLags/PCA_Cause_Influenza.pkl": {
+      "bytes": 1743,
+      "sha256": "cf3920a8232e4d3541f96dc2773e200ff4f4c42a4f8239ffbd72b8b7fe935057"
+    },
+    "Modelos_NoLags/PCA_Cause_Other_Respiratory_Causes.pkl": {
+      "bytes": 1743,
+      "sha256": "cf3920a8232e4d3541f96dc2773e200ff4f4c42a4f8239ffbd72b8b7fe935057"
+    },
+    "Modelos_NoLags/PCA_Cause_Pneumonia.pkl": {
+      "bytes": 1743,
+      "sha256": "cf3920a8232e4d3541f96dc2773e200ff4f4c42a4f8239ffbd72b8b7fe935057"
+    },
+    "Modelos_NoLags/PCA_Cause_Upper_Respiratory_Infection.pkl": {
+      "bytes": 1743,
+      "sha256": "cf3920a8232e4d3541f96dc2773e200ff4f4c42a4f8239ffbd72b8b7fe935057"
+    },
+    "Modelos_NoLags/PCA_Num15a64Anios.pkl": {
+      "bytes": 1743,
+      "sha256": "cf3920a8232e4d3541f96dc2773e200ff4f4c42a4f8239ffbd72b8b7fe935057"
+    },
+    "Modelos_NoLags/PCA_Num1a4Anios.pkl": {
+      "bytes": 1743,
+      "sha256": "cf3920a8232e4d3541f96dc2773e200ff4f4c42a4f8239ffbd72b8b7fe935057"
+    },
+    "Modelos_NoLags/PCA_Num5a14Anios.pkl": {
+      "bytes": 1743,
+      "sha256": "cf3920a8232e4d3541f96dc2773e200ff4f4c42a4f8239ffbd72b8b7fe935057"
+    },
+    "Modelos_NoLags/PCA_Num65oMas.pkl": {
+      "bytes": 1743,
+      "sha256": "cf3920a8232e4d3541f96dc2773e200ff4f4c42a4f8239ffbd72b8b7fe935057"
+    },
+    "Modelos_NoLags/PCA_NumMenor1Anio.pkl": {
+      "bytes": 1743,
+      "sha256": "cf3920a8232e4d3541f96dc2773e200ff4f4c42a4f8239ffbd72b8b7fe935057"
+    },
+    "Modelos_NoLags/PCA_Total_Consultations.pkl": {
+      "bytes": 1743,
+      "sha256": "cf3920a8232e4d3541f96dc2773e200ff4f4c42a4f8239ffbd72b8b7fe935057"
+    },
+    "Modelos_NoLags/Ridge_Hybrid_Cause_Other_Respiratory_Causes.pkl": {
+      "bytes": 593,
+      "sha256": "b488e6dfffb0a0b5165d78f72017f0392879b0ea01593d4c645334f43348df99"
+    },
+    "Modelos_NoLags/Ridge_Hybrid_Cause_Upper_Respiratory_Infection.pkl": {
+      "bytes": 593,
+      "sha256": "0fbdbe9241a006987aaae99be83935ef58e2c490e92d4ed08706556d5c9b5aac"
+    },
+    "Modelos_NoLags/Scaler_Cause_Acute_Bronchitis_Bronchiolitis.pkl": {
+      "bytes": 1343,
+      "sha256": "3e10d52ece3c618ee548dde92c67385ba57ddd349edd7b53af72daa2f5591bb1"
+    },
+    "Modelos_NoLags/Scaler_Cause_Bronchial_Obstructive_Crisis.pkl": {
+      "bytes": 1343,
+      "sha256": "3e10d52ece3c618ee548dde92c67385ba57ddd349edd7b53af72daa2f5591bb1"
+    },
+    "Modelos_NoLags/Scaler_Cause_COVID-19_Confirmed.pkl": {
+      "bytes": 1343,
+      "sha256": "3e10d52ece3c618ee548dde92c67385ba57ddd349edd7b53af72daa2f5591bb1"
+    },
+    "Modelos_NoLags/Scaler_Cause_Influenza.pkl": {
+      "bytes": 1343,
+      "sha256": "3e10d52ece3c618ee548dde92c67385ba57ddd349edd7b53af72daa2f5591bb1"
+    },
+    "Modelos_NoLags/Scaler_Cause_Other_Respiratory_Causes.pkl": {
+      "bytes": 1343,
+      "sha256": "3e10d52ece3c618ee548dde92c67385ba57ddd349edd7b53af72daa2f5591bb1"
+    },
+    "Modelos_NoLags/Scaler_Cause_Pneumonia.pkl": {
+      "bytes": 1343,
+      "sha256": "3e10d52ece3c618ee548dde92c67385ba57ddd349edd7b53af72daa2f5591bb1"
+    },
+    "Modelos_NoLags/Scaler_Cause_Upper_Respiratory_Infection.pkl": {
+      "bytes": 1343,
+      "sha256": "3e10d52ece3c618ee548dde92c67385ba57ddd349edd7b53af72daa2f5591bb1"
+    },
+    "Modelos_NoLags/Scaler_Num15a64Anios.pkl": {
+      "bytes": 1343,
+      "sha256": "3e10d52ece3c618ee548dde92c67385ba57ddd349edd7b53af72daa2f5591bb1"
+    },
+    "Modelos_NoLags/Scaler_Num1a4Anios.pkl": {
+      "bytes": 1343,
+      "sha256": "3e10d52ece3c618ee548dde92c67385ba57ddd349edd7b53af72daa2f5591bb1"
+    },
+    "Modelos_NoLags/Scaler_Num5a14Anios.pkl": {
+      "bytes": 1343,
+      "sha256": "3e10d52ece3c618ee548dde92c67385ba57ddd349edd7b53af72daa2f5591bb1"
+    },
+    "Modelos_NoLags/Scaler_Num65oMas.pkl": {
+      "bytes": 1343,
+      "sha256": "3e10d52ece3c618ee548dde92c67385ba57ddd349edd7b53af72daa2f5591bb1"
+    },
+    "Modelos_NoLags/Scaler_NumMenor1Anio.pkl": {
+      "bytes": 1343,
+      "sha256": "3e10d52ece3c618ee548dde92c67385ba57ddd349edd7b53af72daa2f5591bb1"
+    },
+    "Modelos_NoLags/Scaler_Total_Consultations.pkl": {
+      "bytes": 1343,
+      "sha256": "3e10d52ece3c618ee548dde92c67385ba57ddd349edd7b53af72daa2f5591bb1"
+    },
+    "Modelos_NoLags/XGBoost_Hybrid_Cause_Acute_Bronchitis_Bronchiolitis.pkl": {
+      "bytes": 113742,
+      "sha256": "37603ea4198435984d96dbb356580cf11805518e9548d956af9bfdfd5dee0c29"
+    },
+    "Modelos_NoLags/XGBoost_Hybrid_Cause_Bronchial_Obstructive_Crisis.pkl": {
+      "bytes": 59733,
+      "sha256": "4aa766a89a9710eae8ec4e8c26cfbbffdd583eb0a0433eefa620dc910a133934"
+    },
+    "Modelos_NoLags/XGBoost_Hybrid_Cause_COVID-19_Confirmed.pkl": {
+      "bytes": 59055,
+      "sha256": "a1a365d4be379187de9e829a83402f6debf19919a36f03fcddc1f34e0f677167"
+    },
+    "Modelos_NoLags/XGBoost_Hybrid_Cause_Influenza.pkl": {
+      "bytes": 55653,
+      "sha256": "d0535ed9344982979a1e04081c84cd238c59431b8a7abd001917aa3c24bd3320"
+    },
+    "Modelos_NoLags/XGBoost_Hybrid_Cause_Pneumonia.pkl": {
+      "bytes": 59051,
+      "sha256": "96c8a2bc42f2d8521c7ad4c28aa5032b9b59df3f75f5dec63c798d91c55e0e63"
+    },
+    "Modelos_NoLags/XGBoost_Hybrid_Num15a64Anios.pkl": {
+      "bytes": 57829,
+      "sha256": "04e39d4d00fadc382fb2f1c90ce4e4a105057ecd860b8158f186e64bda1ab129"
+    },
+    "Modelos_NoLags/XGBoost_Hybrid_Num1a4Anios.pkl": {
+      "bytes": 62113,
+      "sha256": "2650d22b0734a014544ccd453cf59aaac26f2ff760025898c3f2187f80ae8a27"
+    },
+    "Modelos_NoLags/XGBoost_Hybrid_Num5a14Anios.pkl": {
+      "bytes": 58985,
+      "sha256": "da69e036622523cde964a61674ec7a79324b6ecf79042fd47e9b84a6478f5a1d"
+    },
+    "Modelos_NoLags/XGBoost_Hybrid_Num65oMas.pkl": {
+      "bytes": 59053,
+      "sha256": "51ee20e3f6d0497ac4bef4e35378390525fd1ac1ea6806b94dd12a0a0a7e8a4f"
+    },
+    "Modelos_NoLags/XGBoost_Hybrid_NumMenor1Anio.pkl": {
+      "bytes": 86738,
+      "sha256": "68f36aecaebfb46158f57403e51b6137c6d037c132a163d9cd48d54953178998"
+    },
+    "Modelos_NoLags/XGBoost_Hybrid_Total_Consultations.pkl": {
+      "bytes": 56401,
+      "sha256": "4fc6e8921489fc35b697db491218e75c344a56a33c67f64cfa8505f6a2c039a4"
+    }
+  },
+  "generated_at": "2026-06-14T17:54:15+00:00",
+  "versions": {
+    "numpy": "2.0.2",
+    "scikit-learn": "1.6.1"
+  }
+}

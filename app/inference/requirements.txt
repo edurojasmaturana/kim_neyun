@@ -1,0 +1,23 @@
+# Dependencias del JOB DE INFERENCIA (no incluye tensorflow ni shap: no se usan).
+# Versiones alineadas con el PoC (poc/requirements (poc).txt).
+
+# --- Core ---
+numpy==2.0.2
+pandas==2.2.2
+scikit-learn==1.6.1
+joblib==1.5.3
+scipy==1.15.0
+
+# --- ML / Deep Learning (CPU) ---
+torch==2.10.0          # en linux/arm64 pip baja la rueda CPU desde PyPI
+xgboost==3.2.0
+transformers==4.57.6
+chronos-forecasting>=1.4   # paquete PyPI (evita git en la imagen)
+
+# --- Clima / calidad de aire ---
+openmeteo-requests==1.3.0
+retry-requests==2.0.0   # requests-cache eliminado: su serializador rompía la ingesta
+epiweeks
+
+# --- Persistencia (DynamoDB) ---
+boto3>=1.34

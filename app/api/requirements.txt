@@ -1,0 +1,18 @@
+# Dependencias de la API (liviana: lee DynamoDB y usuarios en Postgres).
+fastapi==0.115.0
+pydantic==2.10.0
+mangum>=0.17           # adaptador ASGI -> AWS Lambda
+uvicorn==0.34.0        # solo para correr en local
+epiweeks
+boto3>=1.34            # acceso a DynamoDB (y, vía rds-data, al Data API de Aurora)
+
+# --- Backend de usuarios / auth ---
+SQLAlchemy==2.0.36              # ORM de la tabla de usuarios
+sqlalchemy-aurora-data-api>=0.5 # dialecto: habla con Aurora SLSv2 por Data API (sin VPC)
+psycopg2-binary==2.9.10        # driver Postgres para desarrollo local
+alembic==1.14.0                # migraciones de esquema
+passlib[bcrypt]==1.7.4         # hashing de contraseñas
+bcrypt==4.0.1                  # backend de passlib (4.0.x evita el warning de compat de 4.1+)
+PyJWT==2.10.1                  # emisión/verificación de tokens JWT
+email-validator==2.2.0         # validación de email (pydantic EmailStr)
+python-multipart==0.0.20       # form-data para OAuth2PasswordRequestForm
