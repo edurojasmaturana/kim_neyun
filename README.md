@@ -170,8 +170,8 @@ erDiagram
     }
 
     PREDICCION_SEMANA {
-        string pk PK "hospital"
-        string sk PK "SEM#<anio>#<semana>"
+        string pk_hospital PK "atributo pk = hospital"
+        string sk_semana PK "atributo sk = SEM#anio#semana"
         string tipo "semana"
         int    anio
         int    semana_epi
@@ -179,8 +179,8 @@ erDiagram
     }
 
     PROYECCION_ANUAL {
-        string pk PK "hospital"
-        string sk PK "PROY#<anio>"
+        string pk_hospital PK "atributo pk = hospital"
+        string sk_proy PK "atributo sk = PROY#anio"
         string tipo "proyeccion"
         int    anio
         json   data "semanas[], curva_ia[], curva_real[], total_ia"
