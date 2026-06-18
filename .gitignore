@@ -10,6 +10,7 @@ poc/data/*.csv
 # Python
 __pycache__/
 *.pyc
+.coverage
 .venv/
 .cache/
 
@@ -20,8 +21,13 @@ infra/**/*.tfstate.*
 infra/**/.terraform.lock.hcl
 infra/**/tfplan.out
 infra/tfplan.out
+*.tfplan
 *.tfvars
 !*.tfvars.example
+
+# Respaldos de cuentas AWS (contienen datos sensibles, p.ej. hash de password)
+backups-oldorg-*/
+backups-*/
 
 # SO / editores
 .DS_Store
