@@ -1,17 +1,18 @@
 # Cada workspace opera en su propia cuenta AWS con su propio perfil CLI.
-# El state vive en account 033216807288 (dev) / 657082817366 (prod); usar el
-# perfil equivocado intentaría recrear toda la infra en otra cuenta.
+# Org nueva o-mq50svs8i7 (gestora 750906968720). El state vive en account
+# 735252692369 (dev) / 794457362573 (prod); usar el perfil equivocado intentaría
+# recrear toda la infra en otra cuenta.
 # Por eso NO se permite el workspace "default": el lookup falla a propósito si
 # alguien olvida hacer `terraform workspace select dev|prod`.
 locals {
   workspace_profile = {
-    dev  = "kim-dev"
-    prod = "kim-prod"
+    dev  = "kim2-dev"
+    prod = "kim2-prod"
   }[terraform.workspace]
 
   workspace_account = {
-    dev  = "033216807288"
-    prod = "657082817366"
+    dev  = "735252692369"
+    prod = "794457362573"
   }[terraform.workspace]
 }
 
