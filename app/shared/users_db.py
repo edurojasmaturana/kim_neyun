@@ -13,12 +13,44 @@ El engine se cachea para reutilizarse entre invocaciones tibias de Lambda
 
 import datetime
 import functools
+import logging
+import time
 import uuid
 
-from sqlalchemy import Boolean, DateTime, String, create_engine
+from sqlalchemy import Boolean, DateTime, String, create_engine, text
+# StatementError es la base; cubre también su subclase DBAPIError/OperationalError.
+# El Data API levanta el 'resuming' como StatementError pelado (al crear el cursor),
+# así que hay que capturar la base, no solo DBAPIError.
+from sqlalchemy.exc import StatementError
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
 
 from . import config
+
+logger = logging.getLogger("kim.users_db")
+
+# Con Aurora Serverless v2 escalado a cero (min_capacity = 0), la primera consulta
+# tras un periodo de inactividad falla mientras el cluster "despierta": el Data API
+# responde DatabaseResumingException, que sin manejo se propaga como un 500. El
+# resume tarda unos pocos segundos, así que reintentamos con backoff dentro del
+# request (cabe holgado en el timeout de 30 s del Lambda).
+_RESUME_RETRIES = 6
+_RESUME_BACKOFF_S = 2.0
+
+
+def _is_resuming_error(exc: BaseException) -> bool:
+    """True si la excepción (o su causa) es el 'resuming' de Aurora auto-paused.
+
+    Recorre toda la cadena: la causa encadenada (`__cause__`/`__context__`) y, en
+    el caso de SQLAlchemy, la excepción original envuelta en `.orig` (que no queda
+    en `__cause__`).
+    """
+    seen = set()
+    while exc is not None and id(exc) not in seen:
+        seen.add(id(exc))
+        if "DatabaseResumingException" in type(exc).__name__ or "is resuming" in str(exc):
+            return True
+        exc = exc.__cause__ or exc.__context__ or getattr(exc, "orig", None)
+    return False
 
 
 class Base(DeclarativeBase):
@@ -113,10 +145,33 @@ def get_sessionmaker():
     return sessionmaker(bind=get_engine(), expire_on_commit=False)
 
 
+def _wait_until_awake(session) -> None:
+    """Pega un SELECT 1 reintentando mientras Aurora termina de despertar.
+
+    Paga el coste del resume una sola vez por request; si la base ya está activa,
+    es un único SELECT trivial. Solo reintenta el 'resuming'; cualquier otro error
+    se propaga sin demora.
+    """
+    for intento in range(1, _RESUME_RETRIES + 1):
+        try:
+            session.execute(text("SELECT 1"))
+            return
+        except StatementError as exc:
+            if not _is_resuming_error(exc) or intento == _RESUME_RETRIES:
+                raise
+            session.rollback()
+            logger.warning(
+                "Aurora resumiendo (auto-paused); reintento %d/%d en %.0fs",
+                intento, _RESUME_RETRIES, _RESUME_BACKOFF_S,
+            )
+            time.sleep(_RESUME_BACKOFF_S)
+
+
 def get_session():
     """Dependencia FastAPI: una sesión por request, cerrada al terminar."""
     session = get_sessionmaker()()
     try:
+        _wait_until_awake(session)
         yield session
     finally:
         session.close()
