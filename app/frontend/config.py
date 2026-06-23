@@ -18,7 +18,7 @@ from shared.catalog import HOSPITALES, TRADUCCION_CAUSAS, TRADUCCION_EDADES
 # ─────────────────────────────────────────────────────────────────────────────
 BACKEND_URL = os.getenv(
     "API_BASE_URL",
-    "https://ahhkkmhuuk.execute-api.us-east-1.amazonaws.com",
+    "http://localhost:8000",
 ).rstrip("/")
 
 LOGIN_ENDPOINT      = f"{BACKEND_URL}/auth/login"
@@ -30,7 +30,7 @@ HEALTH_ENDPOINT     = f"{BACKEND_URL}/health"
 
 # Parámetros de conexión
 API_TIMEOUT     = int(os.getenv("KIM_API_TIMEOUT", "15"))   # segundos (cold start de Lambda/Aurora puede ser lento)
-API_MAX_RETRIES = int(os.getenv("KIM_API_RETRIES", "2"))    # reintentos
+API_MAX_RETRIES = int(os.getenv("KIM_API_RETRIES", "3"))    # reintentos — alineado a pages/login.py
 
 # ─────────────────────────────────────────────────────────────────────────────
 # STREAMLIT

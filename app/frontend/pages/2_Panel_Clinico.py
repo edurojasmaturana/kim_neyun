@@ -4,8 +4,9 @@ Tab 1: Urgencias tacticas (semana especifica)
 Tab 2: Manual de usuario
 """
 import streamlit as st
+import plotly.graph_objects as go
 import sys, os
-from datetime import date, timedelta
+from datetime import date
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -17,31 +18,14 @@ from config import (
     TRADUCCION_CAUSAS, TRADUCCION_EDADES,
 )
 from components.api_client import fetch_prediction, fetch_hospitales, render_connection_badge
-from utils import initialize_session_state
+from utils import (
+    initialize_session_state, get_semana_epi, traducir_causa, traducir_edad,
+    handle_api_error_and_maybe_logout, render_logout_button, fecha_maxima_consultable,
+)
 
 st.set_page_config(**PAGE_CONFIG)
 st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
 initialize_session_state()
-
-
-def get_semana_epi(d):
-    """Semana epidemiologica CDC/MINSAL (comienza el domingo)."""
-    dia_semana = d.weekday()
-    dias_desde_domingo = (dia_semana + 1) % 7
-    domingo = d - timedelta(days=dias_desde_domingo)
-    inicio_anio = date(domingo.year, 1, 1)
-    primer_domingo = inicio_anio - timedelta(days=(inicio_anio.weekday() + 1) % 7)
-    se = ((domingo - primer_domingo).days // 7) + 1
-    return domingo.year, se, domingo
-
-
-def traducir_causa(clave):
-    clave_limpia = clave.replace("Cause_", "")
-    return TRADUCCION_CAUSAS.get(clave_limpia, clave_limpia.replace("_", " "))
-
-
-def traducir_edad(clave):
-    return TRADUCCION_EDADES.get(clave, clave)
 
 
 with st.sidebar:
@@ -54,6 +38,8 @@ with st.sidebar:
         unsafe_allow_html=True,
     )
     render_connection_badge()
+    st.markdown("<div style='margin-top:16px;'></div>", unsafe_allow_html=True)
+    render_logout_button()
 
 st.markdown(
     '<div style="background:linear-gradient(135deg,#0369a1 0%,#0ea5e9 100%);'
@@ -74,6 +60,13 @@ tab1, tab2 = st.tabs(["🚨 Urgencias (táctico)", "📖 Manual de usuario"])
 with tab1:
     token = st.session_state.get("token")
     hospitales_result = fetch_hospitales(token)
+
+    if not hospitales_result["success"]:
+        if handle_api_error_and_maybe_logout(hospitales_result["error"]):
+            st.stop()
+        st.error(f"No se pudieron cargar los centros asistenciales: {hospitales_result['error']}")
+        st.stop()
+
     hospitales_list = hospitales_result["data"].get("hospitales", [])
 
     if not hospitales_list:
@@ -103,7 +96,7 @@ with tab1:
             "Fecha de referencia",
             value=date.today(),
             min_value=date(2024, 1, 1),
-            max_value=date.today() + timedelta(days=30),
+            max_value=fecha_maxima_consultable(),
             key="panel_fecha",
             label_visibility="collapsed",
             format="DD/MM/YYYY",
@@ -133,6 +126,8 @@ with tab1:
 
         if not pred_result["success"]:
             error_msg = pred_result["error"]
+            if handle_api_error_and_maybe_logout(error_msg):
+                st.stop()
             if "404" in str(error_msg) or "No hay predicción" in str(error_msg):
                 st.warning(
                     f"No hay predicción precomputada para la semana del "
@@ -151,7 +146,7 @@ with tab1:
             edades       = estimaciones.get("Edades", {})
             total_casos  = estimaciones.get("Total", 0)
             temperatura  = data.get("temperatura_referencia")
-            nivel_alerta = data.get("nivel_alerta", "NORMAL")
+            nivel_alerta = data.get("nivel_alerta") or "NORMAL"
             temp_str     = f"{round(temperatura, 1)} °C" if temperatura is not None else "N/D"
             color_alerta = (
                 "#e53e3e" if nivel_alerta.upper() == "CRITICO"
@@ -195,9 +190,8 @@ with tab1:
             col_p1, col_p2 = st.columns(2)
             with col_p1:
                 if causas:
-                    import plotly.graph_objects as go
                     causas_ord = sorted(causas.items(), key=lambda x: x[1], reverse=True)
-                    nombres = [traducir_causa(k) for k, _ in causas_ord]
+                    nombres = [traducir_causa(k, TRADUCCION_CAUSAS) for k, _ in causas_ord]
                     valores = [v for _, v in causas_ord]
                     fig = go.Figure(go.Bar(
                         x=valores, y=nombres, orientation="h",
@@ -221,9 +215,8 @@ with tab1:
 
             with col_p2:
                 if edades:
-                    import plotly.graph_objects as go
                     edades_ord = sorted(edades.items(), key=lambda x: x[1], reverse=True)
-                    nombres_e = [traducir_edad(k) for k, _ in edades_ord]
+                    nombres_e = [traducir_edad(k, TRADUCCION_EDADES) for k, _ in edades_ord]
                     valores_e = [v for _, v in edades_ord]
                     fig2 = go.Figure(go.Pie(
                         labels=nombres_e, values=valores_e, hole=0.4,

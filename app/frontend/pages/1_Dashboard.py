@@ -14,31 +14,10 @@ from config import (
 )
 from components.api_client import fetch_prediction, fetch_hospitales, invalidate_cache, render_connection_badge
 from components.charts import get_plotly_config
-from utils import initialize_session_state
-
-
-def get_semana_epi(d):
-    """Calcula la semana epidemiologica CDC/MINSAL (comienza el domingo)."""
-    dia_semana = d.weekday()
-    dias_desde_domingo = (dia_semana + 1) % 7
-    domingo = d - timedelta(days=dias_desde_domingo)
-    inicio_anio = date(domingo.year, 1, 1)
-    primer_domingo = inicio_anio - timedelta(days=(inicio_anio.weekday() + 1) % 7)
-    se = ((domingo - primer_domingo).days // 7) + 1
-    return domingo.year, se, domingo
-
-
-def traducir_causa(clave):
-    """Las claves de la API vienen como 'Cause_<nombre>' o '<nombre>' directo.
-    El catalogo guarda las traducciones sin el prefijo 'Cause_'."""
-    clave_limpia = clave.replace("Cause_", "")
-    return TRADUCCION_CAUSAS.get(clave_limpia, clave_limpia.replace("_", " "))
-
-
-def traducir_edad(clave):
-    """Las claves de edad de la API vienen como '65oMas', 'Menor1Anio', etc.,
-    coincidiendo con las llaves de TRADUCCION_EDADES del catalogo."""
-    return TRADUCCION_EDADES.get(clave, clave)
+from utils import (
+    initialize_session_state, get_semana_epi, traducir_causa, traducir_edad,
+    handle_api_error_and_maybe_logout, render_logout_button, fecha_maxima_consultable,
+)
 
 
 # Logo UCTemuco
@@ -74,6 +53,13 @@ with st.sidebar:
 
     token = st.session_state.get("token")
     hospitales_result = fetch_hospitales(token)
+
+    if not hospitales_result["success"]:
+        if handle_api_error_and_maybe_logout(hospitales_result["error"]):
+            st.stop()
+        st.error(f"No se pudieron cargar los centros asistenciales: {hospitales_result['error']}")
+        st.stop()
+
     hospitales_list = hospitales_result["data"].get("hospitales", [])
 
     if not hospitales_list:
@@ -101,7 +87,7 @@ with st.sidebar:
         "Fecha",
         value=date.today(),
         min_value=date(2024, 1, 1),
-        max_value=date.today() + timedelta(days=30),
+        max_value=fecha_maxima_consultable(),
         label_visibility="collapsed",
         format="DD/MM/YYYY",
     )
@@ -131,6 +117,9 @@ with st.sidebar:
         unsafe_allow_html=True,
     )
 
+    st.markdown("<div style='margin-top:16px;'></div>", unsafe_allow_html=True)
+    render_logout_button()
+
 # ── CARGA DE DATOS ────────────────────────────────────────────────────────────
 token = st.session_state.get("token")
 fecha_referencia = selected_date.strftime("%Y-%m-%d")
@@ -144,6 +133,8 @@ with st.spinner("Consultando motor predictivo HZF..."):
 
 if not pred_result["success"]:
     error_msg = pred_result["error"]
+    if handle_api_error_and_maybe_logout(error_msg):
+        st.stop()
     if "404" in str(error_msg) or "No hay predicción" in str(error_msg):
         st.warning(
             f"No hay predicción precomputada para la semana del "
@@ -163,7 +154,7 @@ causas       = estimaciones.get("Causas", {})
 edades       = estimaciones.get("Edades", {})
 total_casos  = estimaciones.get("Total", 0)
 temperatura  = pred_data.get("temperatura_referencia")
-nivel_alerta = pred_data.get("nivel_alerta", "NORMAL")
+nivel_alerta = pred_data.get("nivel_alerta") or "NORMAL"
 temp_str     = f"{round(temperatura, 1)} °C" if temperatura is not None else "N/D"
 color_alerta = (
     "#e53e3e" if nivel_alerta.upper() == "CRITICO"
@@ -251,7 +242,7 @@ col_left, col_right = st.columns([3, 2], gap="medium")
 with col_left:
     if causas:
         causas_ord = sorted(causas.items(), key=lambda x: x[1], reverse=True)
-        nombres = [traducir_causa(k) for k, _ in causas_ord]
+        nombres = [traducir_causa(k, TRADUCCION_CAUSAS) for k, _ in causas_ord]
         valores = [v for _, v in causas_ord]
         paleta  = ["#0369a1", "#0ea5e9", "#38bdf8", "#7dd3fc", "#bae6fd", "#e0f2fe", "#cffafe", "#f0f9ff"]
 
@@ -281,7 +272,7 @@ with col_right:
     edades_ord = sorted(edades.items(), key=lambda x: x[1], reverse=True) if edades else []
 
     if edades_ord:
-        nombres_e = [traducir_edad(k) for k, _ in edades_ord]
+        nombres_e = [traducir_edad(k, TRADUCCION_EDADES) for k, _ in edades_ord]
         valores_e = [v for _, v in edades_ord]
         total_e   = sum(valores_e) or 1
         pcts      = [round((v / total_e) * 100) for v in valores_e]
