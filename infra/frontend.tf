@@ -102,6 +102,16 @@ resource "aws_instance" "frontend" {
   })
 
   tags = local.tags
+
+  # `al2023_arm64` apunta al AMI "latest" (parámetro SSM): AWS publica builds
+  # nuevos periódicamente, lo que generaba un `must be replaced` en cada
+  # `plan` sin que nadie haya tocado esta config. Se ignora para no reemplazar
+  # la instancia (y su IP/estado) por cada parche de AMI; para actualizar el
+  # AMI a propósito, hacer `terraform taint aws_instance.frontend` o quitar
+  # este lifecycle temporalmente.
+  lifecycle {
+    ignore_changes = [ami]
+  }
 }
 
 resource "aws_eip_association" "frontend" {
