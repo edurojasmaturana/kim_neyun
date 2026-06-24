@@ -114,11 +114,15 @@ jobs:
             --comment "Deploy frontend ${{ github.sha }}" \
             --parameters "{\"commands\":[
               \"set -euxo pipefail\",
+              \"for i in {1..36}; do docker info >/dev/null 2>&1 && break; sleep 5; done\",
+              \"docker info >/dev/null 2>&1 || { echo 'Docker no quedo disponible a tiempo (instancia recien encendida / cloud-init en curso)' >&2; exit 1; }\",
               \"aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin $REGISTRY\",
               \"docker pull $REGISTRY/${{ env.ECR_REPOSITORY }}:latest\",
-              \"API_BASE_URL=\\$(docker inspect frontend --format '{{range .Config.Env}}{{println .}}{{end}}' | grep '^API_BASE_URL=' | cut -d= -f2-)\",
+              \"for i in {1..36}; do docker inspect frontend >/dev/null 2>&1 && break; sleep 5; done\",
+              \"API_BASE_URL=\$(docker inspect frontend --format '{{range .Config.Env}}{{println .}}{{end}}' 2>/dev/null | grep '^API_BASE_URL=' | cut -d= -f2- || true)\",
+              \"if [ -z \\\"\$API_BASE_URL\\\" ]; then echo 'No existe un contenedor frontend previo con API_BASE_URL (deploy inicial o cloud-init no termino); abortando sin tocar el contenedor actual' >&2; exit 1; fi\",
               \"docker rm -f frontend\",
-              \"docker run -d --name frontend --restart unless-stopped --network kimnet -e API_BASE_URL=\\\"\\$API_BASE_URL\\\" $REGISTRY/${{ env.ECR_REPOSITORY }}:latest\"
+              \"docker run -d --name frontend --restart unless-stopped --network kimnet -e API_BASE_URL=\\\"\$API_BASE_URL\\\" $REGISTRY/${{ env.ECR_REPOSITORY }}:latest\"
             ]}" \
             --query 'Command.CommandId' --output text)
 
