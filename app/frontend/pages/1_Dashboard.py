@@ -246,6 +246,8 @@ with col_left:
         valores = [v for _, v in causas_ord]
         paleta  = ["#0369a1", "#0ea5e9", "#38bdf8", "#7dd3fc", "#bae6fd", "#e0f2fe", "#cffafe", "#f0f9ff"]
 
+        max_valor = max(valores) if valores else 1
+
         fig = go.Figure(go.Bar(
             x=valores, y=nombres, orientation="h",
             marker=dict(color=paleta[:len(nombres)], line=dict(color="rgba(0,0,0,0)")),
@@ -253,13 +255,17 @@ with col_left:
             textposition="outside",
             textfont=dict(size=11, color="#0369a1"),
             hovertemplate="<b>%{y}</b><br>%{x:,.0f} consultas<extra></extra>",
+            cliponaxis=False,
         ))
         fig.update_layout(
-            title=dict(text=f"¿Por qué consultarán? — SE {semana_epi}", font=dict(size=13, color="#0369a1"), x=0),
+            title=dict(text=f"Desglose Etiológico — SE {semana_epi}", font=dict(size=13, color="#0369a1"), x=0),
             font=dict(family="Inter, sans-serif", color="#5a6b82"),
             paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
             margin=dict(l=12, r=60, t=44, b=12),
-            xaxis=dict(gridcolor="#e0f2fe", linecolor="#dde3ed", tickfont=dict(size=10), title="Consultas estimadas"),
+            xaxis=dict(
+                gridcolor="#e0f2fe", linecolor="#dde3ed", tickfont=dict(size=10),
+                title="Consultas estimadas", range=[0, max_valor * 1.15],
+            ),
             yaxis=dict(linecolor="#dde3ed", tickfont=dict(size=11), autorange="reversed"),
             hoverlabel=dict(bgcolor="#fff", bordercolor="#dde3ed", font_size=12),
             height=320, showlegend=False,
@@ -278,6 +284,8 @@ with col_right:
         pcts      = [round((v / total_e) * 100) for v in valores_e]
         paleta_e  = ["#0369a1", "#0ea5e9", "#38bdf8", "#7dd3fc", "#bae6fd"]
 
+        max_valor_e = max(valores_e) if valores_e else 1
+
         fig2 = go.Figure(go.Bar(
             x=valores_e, y=nombres_e, orientation="h",
             marker=dict(
@@ -288,13 +296,17 @@ with col_right:
             textposition="outside",
             textfont=dict(size=10, color="#0369a1"),
             hovertemplate="<b>%{y}</b><br>%{x:,.0f} consultas<extra></extra>",
+            cliponaxis=False,
         ))
         fig2.update_layout(
             title=dict(text="Vulnerabilidad etaria", font=dict(size=13, color="#0369a1"), x=0),
             font=dict(family="Inter, sans-serif", color="#5a6b82"),
             paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-            margin=dict(l=12, r=70, t=44, b=12),
-            xaxis=dict(gridcolor="#e0f2fe", linecolor="#dde3ed", tickfont=dict(size=10), title="Consultas estimadas"),
+            margin=dict(l=12, r=90, t=44, b=12),
+            xaxis=dict(
+                gridcolor="#e0f2fe", linecolor="#dde3ed", tickfont=dict(size=10),
+                title="Consultas estimadas", range=[0, max_valor_e * 1.35],
+            ),
             yaxis=dict(linecolor="#dde3ed", tickfont=dict(size=11), autorange="reversed"),
             hoverlabel=dict(bgcolor="#fff", bordercolor="#dde3ed", font_size=12),
             height=320, showlegend=False,
