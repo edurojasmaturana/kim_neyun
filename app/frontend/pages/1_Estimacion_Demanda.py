@@ -1,6 +1,6 @@
 """
-KIM-NEYUN - Panel Clinico
-Tab 1: Urgencias tacticas (semana especifica)
+KIM-NEYUN - Estimacion de Demanda de Urgencias
+Tab 1: Urgencias (semana especifica)
 Tab 2: Manual de usuario
 """
 import streamlit as st
@@ -22,7 +22,16 @@ from utils import (
     initialize_session_state, get_semana_epi, traducir_causa, traducir_edad,
     handle_api_error_and_maybe_logout, render_logout_button, fecha_maxima_consultable,
 )
+import base64
 
+# Logo UCTemuco
+try:
+    logo_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets", "logo.png")
+    with open(logo_path, "rb") as f:
+        LOGO_UCT = "data:image/png;base64," + base64.b64encode(f.read()).decode()
+except Exception:
+    LOGO_UCT = None
+    
 st.set_page_config(**PAGE_CONFIG)
 st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
 initialize_session_state()
@@ -32,7 +41,7 @@ with st.sidebar:
     st.markdown(
         f'<div style="padding:16px 0 20px 0;border-bottom:1px solid rgba(255,255,255,.12);margin-bottom:20px;">'
         f'<div style="font-size:20px;font-weight:700;color:#fff;">{APP_NAME}</div>'
-        f'<div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:3px;">Panel Clinico</div>'
+        f'<div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:3px;">Estimacion de Demanda de Urgencias</div>'
         f'<div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:6px;">v{APP_VERSION}</div>'
         f'</div>',
         unsafe_allow_html=True,
@@ -41,18 +50,24 @@ with st.sidebar:
     st.markdown("<div style='margin-top:16px;'></div>", unsafe_allow_html=True)
     render_logout_button()
 
+logo_html = (
+    f'<img src="{LOGO_UCT}" style="position:absolute;top:16px;right:20px;'
+    f'height:100px;opacity:0.95;filter:brightness(0) invert(1);" alt="UCTemuco"/>'
+    if LOGO_UCT else ""
+)
+
 st.markdown(
-    '<div style="background:linear-gradient(135deg,#0369a1 0%,#0ea5e9 100%);'
-    'border-radius:12px;padding:20px 24px;margin-bottom:24px;color:#fff;">'
-    '<div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;opacity:.65;margin-bottom:5px;">'
-    'Sistema predictivo de demanda asistencial</div>'
-    '<div style="font-size:22px;font-weight:700;">KIM-NEYUN — Panel Clinico</div>'
-    '<div style="font-size:12px;opacity:.7;margin-top:3px;">Analisis tactico semanal y guia de interpretacion clinica</div>'
-    '</div>',
+    f'<div style="background:linear-gradient(135deg,#0369a1 0%,#0ea5e9 100%);'
+    f'border-radius:12px;padding:20px 24px;margin-bottom:24px;color:#fff;position:relative;">'
+    f'<div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;opacity:.65;margin-bottom:5px;">'
+    f'Sistema predictivo de demanda asistencial</div>'
+    f'<div style="font-size:22px;font-weight:700;">Estimación de Demanda de Urgencias</div>'
+    f'<div style="font-size:12px;opacity:.7;margin-top:3px;">Análisis semanal y guía de interpretación clínica</div>'
+    f'{logo_html}</div>',
     unsafe_allow_html=True,
 )
 
-tab1, tab2 = st.tabs(["🚨 Urgencias (táctico)", "📖 Manual de usuario"])
+tab1, tab2 = st.tabs(["🚨 Urgencias", "📖 Manual de usuario"])
 
 # ─────────────────────────────────────────────────────────────────────────────
 # TAB 1 — URGENCIAS TÁCTICAS
@@ -113,7 +128,7 @@ with tab1:
         unsafe_allow_html=True,
     )
 
-    ejecutar = st.button("▶ Ejecutar análisis táctico", type="primary", use_container_width=False)
+    ejecutar = st.button("▶ Ejecutar análisis", type="primary", use_container_width=False)
 
     if ejecutar:
         with st.spinner("Consultando predicciones precomputadas (Chronos + XGBoost)..."):
@@ -132,7 +147,7 @@ with tab1:
                 st.warning(
                     f"No hay predicción precomputada para la semana del "
                     f"{domingo_se.strftime('%d/%m/%Y')} en {hosp_sel}. "
-                    f"El backfill táctico cubre un rango limitado de semanas; "
+                    f"El sistema cubre un rango limitado de semanas; "
                     f"prueba con la semana actual."
                 )
             else:
@@ -249,4 +264,4 @@ with tab2:
 
     st.markdown('<div style="background:#fff;border:1px solid #dde3ed;border-left:3px solid #0369a1;border-radius:10px;padding:20px 24px;margin-bottom:16px;"><div style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#5a6b82;font-weight:600;margin-bottom:8px;">Desarrollado por</div><p style="color:#1a2942;font-size:14px;font-weight:500;margin:0 0 4px 0;">TM Eduardo Rojas Maturana · Dr. TM Neftalí Guzmán Oyarzo</p><p style="color:#5a6b82;font-size:12px;margin:0;">Facultad de Ciencias de la Salud, Universidad Católica de Temuco — Laboratorio de Investigación en Salud de Precisión</p></div>', unsafe_allow_html=True)
 
-st.markdown(f'<div style="margin-top:24px;padding-top:14px;border-top:1px solid #dde3ed;font-size:11px;color:#5a6b82;">{APP_NAME} v{APP_VERSION} — Panel Clínico</div>', unsafe_allow_html=True)
+st.markdown(f'<div style="margin-top:24px;padding-top:14px;border-top:1px solid #dde3ed;font-size:11px;color:#5a6b82;">{APP_NAME} v{APP_VERSION} — Estimación de Demanda de Urgencias</div>', unsafe_allow_html=True)

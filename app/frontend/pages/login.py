@@ -39,7 +39,7 @@ if "login_error" not in st.session_state:
 # -----------------------------------------------------------------------------
 
 if st.session_state.token:
-    st.switch_page("pages/1_Dashboard.py")
+    st.switch_page("pages/1_Estimacion_Demanda.py")
 
 # -----------------------------------------------------------------------------
 # CSS
@@ -133,7 +133,7 @@ def authenticate_user(email: str, password: str):
                 st.session_state.login_error = None
 
                 st.success("✓ Autenticación exitosa. Redirigiendo...")
-                st.switch_page("pages/1_Dashboard.py")
+                st.switch_page("pages/1_Estimacion_Demanda.py")
                 return
 
             elif response.status_code == 401:
