@@ -131,6 +131,18 @@ def authenticate_user(email: str, password: str):
                 st.session_state.token = data["access_token"]
                 st.session_state.user_email = email
                 st.session_state.login_error = None
+                try:
+                    me_resp = requests.get(
+                        LOGIN_ENDPOINT.replace("/auth/login", "/auth/me"),
+                        headers={"Authorization": f"Bearer {data['access_token']}"},
+                        timeout=10,
+                    )
+                    if me_resp.status_code == 200:
+                        st.session_state.user_role = me_resp.json().get("role", "viewer")
+                    else:
+                        st.session_state.user_role = "viewer"
+                except Exception:
+                    st.session_state.user_role = "viewer"
 
                 st.success("✓ Autenticación exitosa. Redirigiendo...")
                 st.switch_page("pages/1_Estimacion_Demanda.py")
