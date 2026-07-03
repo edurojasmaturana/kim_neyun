@@ -174,9 +174,6 @@ GLOBAL_CSS = f"""
 
   footer {{ visibility: hidden; }}
 
-  [data-testid="stSidebarNav"] li:first-child,
-  [data-testid="stSidebarNav"] li:last-child {{ display: none !important; }}
-
   ::-webkit-scrollbar {{ width: 6px; }}
   ::-webkit-scrollbar-track {{ background: {THEME['bg']}; }}
   ::-webkit-scrollbar-thumb {{ background: {THEME['border']}; border-radius: 3px; }}
