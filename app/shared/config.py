@@ -58,10 +58,7 @@ JWT_SECRET = os.environ.get("JWT_SECRET", "dev-insecure-change-me")
 JWT_ALG = os.environ.get("JWT_ALG", "HS256")
 ACCESS_TOKEN_TTL_MIN = int(os.environ.get("ACCESS_TOKEN_TTL_MIN", "480"))  # 8 h
 
-# --- Backoffice (SQLAdmin) ---
-# Secreto para firmar la cookie de sesión del panel /admin. En AWS se inyecta
-# desde Secrets Manager; en local hay un default SOLO para desarrollo.
-ADMIN_SESSION_SECRET = os.environ.get("ADMIN_SESSION_SECRET", "dev-insecure-admin-session")
+# --- Invitaciones ---
 # Base pública para construir el enlace de invitación (sin barra final). Local:
 # la propia API; AWS: la URL del API Gateway que sirve /invitaciones/aceptar.
 ACCEPT_BASE_URL = os.environ.get("ACCEPT_BASE_URL", "http://localhost:8000").rstrip("/")
@@ -81,6 +78,12 @@ ALERTA_MIN_SEMANAS = int(os.environ.get("ALERTA_MIN_SEMANAS", "12"))
 # Umbral global de respaldo, usado solo cuando un centro no tiene historia
 # suficiente para calcular sus percentiles (el PoC usaba 150 en el frontend).
 ALERTA_THRESHOLD = int(os.environ.get("ALERTA_THRESHOLD", "150"))
+
+# --- Envío de correo (SES v2) ---
+# Dirección remitente. Vacío = envío deshabilitado (el endpoint igual devuelve
+# el link). Requiere que el dominio/dirección esté verificado en SES y que el
+# rol del Lambda tenga permiso ses:SendEmail.
+SES_FROM_EMAIL = os.environ.get("SES_FROM_EMAIL", "")
 
 # Coordenadas de referencia (Temuco) para Open-Meteo.
 LAT = float(os.environ.get("LAT", "-38.7396"))

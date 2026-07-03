@@ -20,8 +20,7 @@ from fastapi import Depends, FastAPI, HTTPException
 from mangum import Mangum
 from pydantic import BaseModel, Field
 
-from api import auth, invitations
-from api.admin import setup_admin
+from api import admin_api, auth, invitations
 from api.auth import get_current_user
 from shared import repository
 from shared.catalog import HOSPITALES
@@ -51,6 +50,7 @@ almacenan en DynamoDB; esta API solo las lee, por lo que es liviana y rápida.
 TAGS_METADATA = [
     {"name": "Salud", "description": "Estado del servicio."},
     {"name": "Auth", "description": "Login y gestión de usuarios. Los endpoints de datos requieren un token Bearer."},
+    {"name": "Admin", "description": "Gestión de usuarios e invitaciones (solo rol admin)."},
     {"name": "Catálogo", "description": "Datos de dominio para poblar el dashboard."},
     {"name": "Predicciones", "description": "Pronósticos táctico (semanal) y estratégico (anual)."},
 ]
@@ -69,10 +69,9 @@ app = FastAPI(
 app.include_router(auth.router)
 # Flujo público de aceptación de invitaciones (el invitado fija su contraseña).
 app.include_router(invitations.router)
-
-# Backoffice de administración (SQLAdmin) en /admin: gestión de usuarios e
-# invitaciones, restringido a rol admin.
-setup_admin(app)
+# Panel de administración JSON (POST /admin/invitar, GET /admin/users,
+# PATCH /admin/users/{id}). Requiere JWT con rol admin.
+app.include_router(admin_api.router)
 
 
 # --- Modelos de entrada -----------------------------------------------------
