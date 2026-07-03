@@ -16,8 +16,3 @@ bcrypt==4.0.1                  # backend de passlib (4.0.x evita el warning de c
 PyJWT==2.10.1                  # emisión/verificación de tokens JWT
 email-validator==2.2.0         # validación de email (pydantic EmailStr)
 python-multipart==0.0.20       # form-data para OAuth2PasswordRequestForm
-
-# --- Backoffice (/admin) ---
-sqladmin==0.20.1               # panel de administración (CRUD) sobre SQLAlchemy
-itsdangerous==2.2.0            # firma de la cookie de sesión del panel
-Jinja2==3.1.4                  # plantillas que usa SQLAdmin

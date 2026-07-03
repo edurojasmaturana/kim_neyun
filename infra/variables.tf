@@ -120,5 +120,5 @@ variable "frontend_schedule_days" {
 variable "domain_name" {
   type        = string
   default     = "kimneyun.cl"
-  description = "Dominio principal del proyecto. Usado en Route53 y en el Caddyfile del frontend."
+  description = "Dominio principal del proyecto. Usado en Route53 (dns.tf), SES (ses.tf) y el Caddyfile del frontend."
 }
