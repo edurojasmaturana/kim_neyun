@@ -28,6 +28,14 @@ resource "aws_security_group" "frontend" {
   vpc_id      = data.aws_vpc.default.id
 
   ingress {
+    description = "HTTP (Lets Encrypt HTTP-01 challenge)"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
     description = "HTTPS"
     from_port   = 443
     to_port     = 443
@@ -99,6 +107,7 @@ resource "aws_instance" "frontend" {
     api_base_url = aws_apigatewayv2_api.http.api_endpoint
     region       = var.region
     frontend_ip  = aws_eip.frontend.public_ip
+    domain_name  = var.domain_name
   })
 
   tags = local.tags

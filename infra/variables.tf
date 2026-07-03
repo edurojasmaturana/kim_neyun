@@ -116,3 +116,9 @@ variable "frontend_schedule_days" {
   default     = "MON-FRI"
   description = "Días del schedule de encendido/apagado. \"MON-FRI\" (horario laboral) o \"*\" para todos los días (demos en fin de semana)."
 }
+
+variable "domain_name" {
+  type        = string
+  default     = "kimneyun.cl"
+  description = "Dominio principal del proyecto. Usado en Route53 y en el Caddyfile del frontend."
+}

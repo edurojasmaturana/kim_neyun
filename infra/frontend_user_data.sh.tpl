@@ -26,18 +26,14 @@ docker run -d --name frontend --restart unless-stopped --network kimnet \
 
 mkdir -p /opt/caddy
 cat > /opt/caddy/Caddyfile <<EOF
-{
-    default_sni ${frontend_ip}
-}
-
-https://${frontend_ip} {
-    tls internal
+${domain_name} {
     reverse_proxy frontend:8501
 }
 EOF
 
 docker rm -f caddy >/dev/null 2>&1 || true
 docker run -d --name caddy --restart unless-stopped --network kimnet \
+  -p 80:80 \
   -p 443:443 \
   -v /opt/caddy/Caddyfile:/etc/caddy/Caddyfile:ro \
   -v caddy_data:/data \
