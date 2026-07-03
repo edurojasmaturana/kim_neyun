@@ -11,7 +11,7 @@ from api import main
 from api.auth import get_current_user
 from shared import repository
 from shared.catalog import HOSPITALES
-from shared.users_db import User
+from shared.users_db import User, get_session
 
 
 @pytest.fixture
@@ -31,6 +31,29 @@ def test_health_no_requiere_auth():
     r = TestClient(main.app).get("/health")
     assert r.status_code == 200
     assert r.json() == {"status": "ok"}
+
+
+# --- /health/db (sin auth, warmup de Aurora) ---------------------------------
+
+def test_health_db_sin_bd_devuelve_json_503():
+    """Sin BD configurada devuelve 503 JSON — nunca texto plano ni body vacío."""
+    r = TestClient(main.app).get("/health/db")
+    assert r.status_code == 503
+    body = r.json()
+    assert body["status"] == "unavailable"
+    assert body["db"] == "resuming"
+
+
+def test_health_db_con_bd_devuelve_ok(db_sessionmaker, monkeypatch):
+    """Con BD disponible (simulada con SQLite) devuelve 200 {"status":"ok","db":"up"}."""
+    # get_sessionmaker ya fue importado en main; hay que patchear la referencia local.
+    monkeypatch.setattr(main, "get_sessionmaker", lambda: db_sessionmaker)
+
+    r = TestClient(main.app).get("/health/db")
+    assert r.status_code == 200
+    body = r.json()
+    assert body["status"] == "ok"
+    assert body["db"] == "up"
 
 
 # --- /hospitales -------------------------------------------------------------

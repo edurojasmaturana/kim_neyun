@@ -29,6 +29,23 @@ if st.session_state.get("user_role") != "admin":
 token = st.session_state.get("token")
 headers = {"Authorization": f"Bearer {token}"}
 
+
+def _safe_json(response: requests.Response) -> dict | list | None:
+    """Parsea JSON de la respuesta; devuelve None si el body no es JSON válido."""
+    try:
+        return response.json()
+    except Exception:
+        return None
+
+
+def _detail_from_response(response: requests.Response, fallback: str) -> str:
+    """Extrae el campo 'detail' de una respuesta JSON de error, con fallback seguro."""
+    data = _safe_json(response)
+    if isinstance(data, dict):
+        return str(data.get("detail", fallback))
+    return fallback
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # SIDEBAR
 # ─────────────────────────────────────────────────────────────────────────────
@@ -101,37 +118,54 @@ with st.form("form_invitacion", border=True):
                         f"{BACKEND_URL}/admin/invitar",
                         json={"email": email_invitado, "role": rol_invitado},
                         headers=headers,
-                        timeout=15,
+                        timeout=30,
                     )
-                    if resp.status_code == 200:
-                        data = resp.json()
-                        link = data.get("link", "")
-                        st.success(f"Invitación generada para **{email_invitado}** con rol **{rol_invitado}**.")
-                        st.markdown(
-                            f'<div style="background:#e0f2fe;border:1px solid #0ea5e9;border-radius:8px;'
-                            f'padding:14px 16px;margin-top:8px;">'
-                            f'<div style="font-size:11px;color:#0369a1;font-weight:600;margin-bottom:6px;'
-                            f'text-transform:uppercase;letter-spacing:.05em;">Enlace de invitación</div>'
-                            f'<code style="font-size:12px;word-break:break-all;color:#0369a1;">{link}</code>'
-                            f'<div style="font-size:11px;color:#5a6b82;margin-top:8px;">'
-                            f'Copia este enlace y envíalo al invitado. Caduca en 7 días y es de un solo uso.</div>'
-                            f'</div>',
-                            unsafe_allow_html=True,
-                        )
-                        st.code(link, language=None)
+                    # El endpoint devuelve 201 (Created) en éxito
+                    if resp.status_code in (200, 201):
+                        data = _safe_json(resp)
+                        if data is None:
+                            st.error(
+                                "El servidor respondió de forma inesperada. Reintenta en unos segundos."
+                            )
+                        else:
+                            link = data.get("link", "")
+                            st.success(
+                                f"Invitación generada para **{email_invitado}** con rol **{rol_invitado}**."
+                            )
+                            st.markdown(
+                                f'<div style="background:#e0f2fe;border:1px solid #0ea5e9;border-radius:8px;'
+                                f'padding:14px 16px;margin-top:8px;">'
+                                f'<div style="font-size:11px;color:#0369a1;font-weight:600;margin-bottom:6px;'
+                                f'text-transform:uppercase;letter-spacing:.05em;">Enlace de invitación</div>'
+                                f'<code style="font-size:12px;word-break:break-all;color:#0369a1;">{link}</code>'
+                                f'<div style="font-size:11px;color:#5a6b82;margin-top:8px;">'
+                                f'Copia este enlace y envíalo al invitado. Caduca en 7 días y es de un solo uso.</div>'
+                                f'</div>',
+                                unsafe_allow_html=True,
+                            )
+                            st.code(link, language=None)
                     elif resp.status_code == 401:
                         st.error("Token expirado. Recarga la página e inicia sesión nuevamente.")
                     elif resp.status_code == 403:
                         st.error("Sin permisos para invitar usuarios.")
+                    elif resp.status_code == 409:
+                        detail = _detail_from_response(resp, "Ya existe un usuario con ese email.")
+                        st.error(f"Conflicto: {detail}")
                     else:
-                        detail = resp.json().get("detail", f"Error {resp.status_code}")
-                        st.error(f"Error: {detail}")
+                        # Cualquier otro error: extraer detail de JSON si está disponible
+                        if resp.status_code in (500, 502, 503, 504):
+                            st.error(
+                                "El servidor está iniciando. Reintenta en unos segundos."
+                            )
+                        else:
+                            detail = _detail_from_response(resp, f"HTTP {resp.status_code}")
+                            st.error(f"Error: {detail}")
                 except requests.exceptions.Timeout:
                     st.error("Tiempo de espera agotado. Intenta nuevamente.")
                 except requests.exceptions.ConnectionError:
                     st.error("No se pudo conectar al servidor.")
                 except Exception as e:
-                    st.error(f"Error inesperado: {str(e)}")
+                    st.error(f"Error inesperado: {e}")
 
 st.markdown("<div style='margin-top:32px;'></div>", unsafe_allow_html=True)
 
@@ -151,13 +185,14 @@ try:
     resp_users = requests.get(
         f"{BACKEND_URL}/admin/users",
         headers=headers,
-        timeout=15,
+        timeout=30,
     )
 
     if resp_users.status_code == 200:
-        usuarios = resp_users.json()
-
-        if not usuarios:
+        usuarios = _safe_json(resp_users)
+        if not isinstance(usuarios, list):
+            st.error("Respuesta inesperada al cargar usuarios. Recarga la página.")
+        elif not usuarios:
             st.info("No hay usuarios registrados aún.")
         else:
             for user in usuarios:
@@ -216,16 +251,18 @@ try:
                                         "is_active": nuevo_estado == "Activo",
                                     },
                                     headers=headers,
-                                    timeout=15,
+                                    timeout=30,
                                 )
                                 if patch_resp.status_code == 200:
                                     st.success(f"Usuario {user_email} actualizado.")
                                     st.rerun()
                                 else:
-                                    detail = patch_resp.json().get("detail", f"Error {patch_resp.status_code}")
+                                    detail = _detail_from_response(
+                                        patch_resp, f"HTTP {patch_resp.status_code}"
+                                    )
                                     st.error(f"Error: {detail}")
                             except Exception as e:
-                                st.error(f"Error inesperado: {str(e)}")
+                                st.error(f"Error inesperado: {e}")
 
     elif resp_users.status_code == 401:
         st.error("Token expirado. Recarga la página e inicia sesión nuevamente.")
@@ -239,7 +276,7 @@ except requests.exceptions.Timeout:
 except requests.exceptions.ConnectionError:
     st.error("No se pudo conectar al servidor.")
 except Exception as e:
-    st.error(f"Error inesperado: {str(e)}")
+    st.error(f"Error inesperado: {e}")
 
 # ─────────────────────────────────────────────────────────────────────────────
 # FOOTER

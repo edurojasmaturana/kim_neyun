@@ -3,6 +3,7 @@
 KIM-NEYÜN — Pantalla de Inicio de Sesión
 """
 
+import threading
 import streamlit as st
 import requests
 import sys
@@ -10,7 +11,7 @@ import os
 import time
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from config import PAGE_CONFIG, LOGIN_ENDPOINT
+from config import PAGE_CONFIG, LOGIN_ENDPOINT, HEALTH_DB_ENDPOINT
 
 # -----------------------------------------------------------------------------
 # CONFIGURACIÓN
@@ -21,8 +22,6 @@ LOGIN_CONFIG["layout"] = "centered"
 LOGIN_CONFIG["initial_sidebar_state"] = "collapsed"
 
 st.set_page_config(**LOGIN_CONFIG)
-
-# LOGIN_ENDPOINT ahora viene de config.py (una sola fuente de verdad)
 
 # -----------------------------------------------------------------------------
 # SESSION STATE
@@ -40,6 +39,23 @@ if "login_error" not in st.session_state:
 
 if st.session_state.token:
     st.switch_page("pages/1_Estimacion_Demanda.py")
+
+# -----------------------------------------------------------------------------
+# WARMUP AURORA — fire-and-forget, una vez por sesión
+# Dispara GET /health/db en background para precalentar Aurora mientras el
+# usuario escribe sus credenciales. No se espera la respuesta.
+# -----------------------------------------------------------------------------
+
+def _fire_warmup() -> None:
+    try:
+        requests.get(HEALTH_DB_ENDPOINT, timeout=35)
+    except Exception:
+        pass
+
+
+if not st.session_state.get("_warmup_fired"):
+    st.session_state["_warmup_fired"] = True
+    threading.Thread(target=_fire_warmup, daemon=True).start()
 
 # -----------------------------------------------------------------------------
 # CSS
@@ -104,47 +120,69 @@ footer {visibility:hidden;}
 # -----------------------------------------------------------------------------
 # AUTENTICACIÓN
 # -----------------------------------------------------------------------------
-def authenticate_user(email: str, password: str):
-    # Reintentos con backoff: la base de datos es serverless con
-    # capacidad minima 0, por lo que la primera peticion tras un
-    # periodo de inactividad puede fallar mientras "despierta".
-    intentos = 3
-    espera_segundos = [2, 4]  # backoff entre reintentos (no en el ultimo intento)
+
+def _safe_json(response: requests.Response) -> dict | None:
+    """Parsea JSON de la respuesta; retorna None si el body no es JSON."""
+    try:
+        return response.json()
+    except Exception:
+        return None
+
+
+def authenticate_user(email: str, password: str, status_placeholder) -> None:
+    """Intenta login con reintentos para cubrir el cold start de Aurora (~20-25s).
+
+    Reintentos: 4 intentos, timeout 25s c/u, backoff [5, 10, 15]s.
+    Cobertura total: hasta ~75s, más que suficiente para el wake-up de Aurora.
+    El warmup fire-and-forget ya debería haber calentado Aurora mientras el
+    usuario completaba el formulario, por lo que lo normal es éxito en el primer
+    intento.
+    """
+    intentos = 4
+    backoff_s = [5, 10, 15]
 
     for intento in range(intentos):
         try:
             if intento > 0:
-                st.info(f"Backend iniciando, reintentando... ({intento + 1}/{intentos})")
+                status_placeholder.info(
+                    f"El servidor está iniciando, reintentando... ({intento + 1}/{intentos})"
+                )
 
             response = requests.post(
                 LOGIN_ENDPOINT,
-                data={
-                    "username": email,
-                    "password": password
-                },
-                timeout=15
+                data={"username": email, "password": password},
+                timeout=25,
             )
 
             if response.status_code == 200:
-                data = response.json()
+                data = _safe_json(response)
+                if data is None:
+                    st.session_state.login_error = (
+                        "Respuesta inesperada del servidor. Reintenta en unos segundos."
+                    )
+                    return
 
                 st.session_state.token = data["access_token"]
                 st.session_state.user_email = email
                 st.session_state.login_error = None
+
                 try:
                     me_resp = requests.get(
                         LOGIN_ENDPOINT.replace("/auth/login", "/auth/me"),
                         headers={"Authorization": f"Bearer {data['access_token']}"},
-                        timeout=10,
+                        timeout=15,
                     )
                     if me_resp.status_code == 200:
-                        st.session_state.user_role = me_resp.json().get("role", "viewer")
+                        me_data = _safe_json(me_resp)
+                        st.session_state.user_role = (
+                            me_data.get("role", "viewer") if me_data else "viewer"
+                        )
                     else:
                         st.session_state.user_role = "viewer"
                 except Exception:
                     st.session_state.user_role = "viewer"
 
-                st.success("✓ Autenticación exitosa. Redirigiendo...")
+                status_placeholder.success("✓ Autenticación exitosa. Redirigiendo...")
                 st.switch_page("pages/1_Estimacion_Demanda.py")
                 return
 
@@ -153,35 +191,35 @@ def authenticate_user(email: str, password: str):
                 return
 
             else:
-                # 500/502/503 durante el arranque de la BD: reintentar
+                # 5xx o respuestas inesperadas: Aurora puede estar iniciando — reintentar
                 if intento < intentos - 1:
-                    time.sleep(espera_segundos[intento])
+                    time.sleep(backoff_s[intento])
                     continue
                 st.session_state.login_error = (
                     f"Error del servidor ({response.status_code}). "
-                    "El backend puede estar iniciandose, intenta de nuevo en unos segundos."
+                    "El backend puede estar iniciándose, intenta de nuevo en unos segundos."
                 )
                 return
 
+        except requests.exceptions.Timeout:
+            if intento < intentos - 1:
+                time.sleep(backoff_s[intento])
+                continue
+            st.session_state.login_error = "Tiempo de espera agotado. Intenta de nuevo."
+            return
+
         except requests.exceptions.ConnectionError:
             if intento < intentos - 1:
-                time.sleep(espera_segundos[intento])
+                time.sleep(backoff_s[intento])
                 continue
             st.session_state.login_error = "No se pudo conectar al backend."
             return
 
-        except requests.exceptions.Timeout:
-            if intento < intentos - 1:
-                time.sleep(espera_segundos[intento])
-                continue
-            st.session_state.login_error = "Tiempo de espera agotado."
+        except Exception as e:
+            st.session_state.login_error = f"Error inesperado: {e}"
             return
 
-        except Exception as e:
-            st.session_state.login_error = str(e)
-            return
-    
-    
+
 # -----------------------------------------------------------------------------
 # LOGO
 # -----------------------------------------------------------------------------
@@ -219,11 +257,17 @@ if st.session_state.login_error:
     st.error(st.session_state.login_error)
 
 # -----------------------------------------------------------------------------
+# CONTENEDOR DE ESTADO — colocado ANTES del form para que los mensajes de
+# "reintentando" y "éxito" aparezcan fuera de la card blanca (no dentro del form)
+# -----------------------------------------------------------------------------
+
+status_placeholder = st.empty()
+
+# -----------------------------------------------------------------------------
 # FORMULARIO
 # -----------------------------------------------------------------------------
 
 with st.form("login_form"):
-
     email = st.text_input(
         "Correo institucional",
         placeholder="director@hospitaltemuco.cl"
@@ -240,12 +284,11 @@ with st.form("login_form"):
         use_container_width=True
     )
 
-    if submitted:
-
-        if not email or not password:
-            st.session_state.login_error = (
-                "Por favor completa todos los campos."
-            )
-            st.rerun()
-
-        authenticate_user(email, password)
+# La autenticación corre FUERA del with-form para que st.info/st.success
+# se rendericen en status_placeholder (encima de la card), no dentro del form.
+if submitted:
+    if not email or not password:
+        st.session_state.login_error = "Por favor completa todos los campos."
+        st.rerun()
+    else:
+        authenticate_user(email, password, status_placeholder)
