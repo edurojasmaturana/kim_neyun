@@ -7,14 +7,19 @@ import sys
 import os
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from config import PAGE_CONFIG
 
-st.set_page_config(**PAGE_CONFIG)
+login_page     = st.Page("pages/login.py",                title="Iniciar sesión",        url_path="login")
+dashboard_page = st.Page("pages/1_Estimacion_Demanda.py", title="Estimación de Demanda", url_path="dashboard", default=True)
+admin_page     = st.Page("pages/2_Admin.py",              title="Administración",         url_path="admin")
 
-if "token" not in st.session_state:
-    st.session_state.token = None
+_token = st.session_state.get("token")
+_role  = st.session_state.get("user_role")
 
-if st.session_state.token:
-    st.switch_page("pages/1_Dashboard.py")
+if not _token:
+    pg = st.navigation([login_page], position="hidden")
+elif _role == "admin":
+    pg = st.navigation([dashboard_page, admin_page])
 else:
-    st.switch_page("pages/login.py")
+    pg = st.navigation([dashboard_page], position="hidden")
+
+pg.run()
