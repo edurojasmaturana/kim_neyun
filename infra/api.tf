@@ -58,11 +58,11 @@ resource "aws_lambda_function" "api" {
       AURORA_CLUSTER_ARN = aws_rds_cluster.users.arn
       AURORA_SECRET_ARN  = aws_secretsmanager_secret.db.arn
       AURORA_DATABASE    = var.aurora_database
-      JWT_SECRET         = random_password.jwt.result
-      # Backoffice /admin: secreto de sesión + base pública para el enlace de
-      # invitación (la propia URL del API Gateway sirve /invitaciones/aceptar).
-      ADMIN_SESSION_SECRET = random_password.admin_session.result
-      ACCEPT_BASE_URL      = aws_apigatewayv2_stage.default.invoke_url
+      JWT_SECRET      = random_password.jwt.result
+      # Base pública para el enlace de invitación (sirve /invitaciones/aceptar).
+      ACCEPT_BASE_URL = aws_apigatewayv2_stage.default.invoke_url
+      # Remitente SES para el correo de invitación. Vacío = no envía correo.
+      SES_FROM_EMAIL  = "no-reply@${var.domain_name}"
     }
   }
 

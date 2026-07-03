@@ -1,10 +1,10 @@
 """Invitaciones por enlace (flujo público de aceptación).
 
-El admin genera la invitación desde el backoffice (`/admin`); aquí vive la otra
-mitad del flujo: el invitado abre el enlace y **fija su propia contraseña**. Estas
-rutas son públicas (no llevan `require_admin`) porque el portador del token aún no
-tiene cuenta; la seguridad está en el token (un solo uso, caduca, solo se guarda su
-hash).
+El admin genera la invitación vía POST /admin/invitar; aquí vive la otra mitad
+del flujo: el invitado abre el enlace y **fija su propia contraseña**. Estas
+rutas son públicas (no llevan `require_admin`) porque el portador del token aún
+no tiene cuenta; la seguridad está en el token (un solo uso, caduca, solo se
+guarda su hash).
 """
 
 import datetime
@@ -39,7 +39,7 @@ def create_invitation(session: Session, email: str, role: str, created_by: str) 
     """Crea una invitación y devuelve el token EN CLARO (se muestra una sola vez).
 
     No commitea: deja la fila en la sesión para que el llamador controle la
-    transacción (el backoffice de SQLAdmin gestiona su propia sesión).
+    transacción.
     """
     raw = secrets.token_urlsafe(32)
     inv = Invitation(
