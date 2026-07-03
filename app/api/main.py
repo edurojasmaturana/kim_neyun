@@ -17,6 +17,7 @@ import os
 
 from epiweeks import Week
 from fastapi import Depends, FastAPI, HTTPException
+from fastapi.responses import JSONResponse
 from mangum import Mangum
 from pydantic import BaseModel, Field
 
@@ -24,7 +25,7 @@ from api import admin_api, auth, invitations
 from api.auth import get_current_user
 from shared import repository
 from shared.catalog import HOSPITALES
-from shared.users_db import User
+from shared.users_db import User, _wait_until_awake, get_sessionmaker
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("kim.api")
@@ -108,6 +109,11 @@ class HealthResp(BaseModel):
     status: str = Field(examples=["ok"])
 
 
+class HealthDbResp(BaseModel):
+    status: str = Field(examples=["ok"])
+    db: str = Field(examples=["up"])
+
+
 class HospitalesResp(BaseModel):
     hospitales: list[str] = Field(description="Centros de salud disponibles.")
 
@@ -179,6 +185,33 @@ class ProyeccionAnualResp(BaseModel):
 @app.get("/health", response_model=HealthResp, tags=["Salud"], summary="Estado del servicio")
 def health():
     return {"status": "ok"}
+
+
+@app.get(
+    "/health/db",
+    tags=["Salud"],
+    summary="Estado de Aurora / warmup",
+    responses={
+        200: {"description": "Aurora activa."},
+        503: {"description": "Aurora todavía iniciando."},
+    },
+)
+def health_db():
+    """Precalienta Aurora Serverless v2 ejecutando un SELECT 1.
+
+    Llamar fire-and-forget desde el frontend antes del login para que Aurora
+    ya esté activa cuando el usuario envíe sus credenciales.
+    No requiere autenticación. Siempre devuelve JSON (nunca texto plano).
+    """
+    try:
+        session = get_sessionmaker()()
+        try:
+            _wait_until_awake(session)
+        finally:
+            session.close()
+        return {"status": "ok", "db": "up"}
+    except Exception:
+        return JSONResponse({"status": "unavailable", "db": "resuming"}, status_code=503)
 
 
 @app.get("/hospitales", response_model=HospitalesResp, tags=["Catálogo"],
