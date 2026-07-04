@@ -129,7 +129,7 @@ def _safe_json(response: requests.Response) -> dict | None:
         return None
 
 
-def authenticate_user(email: str, password: str, status_placeholder) -> None:
+def authenticate_user(email: str, password: str, status_placeholder) -> bool:
     """Intenta login con reintentos para cubrir el cold start de Aurora (~20-25s).
 
     Reintentos: 4 intentos, timeout 25s c/u, backoff [5, 10, 15]s.
@@ -137,6 +137,10 @@ def authenticate_user(email: str, password: str, status_placeholder) -> None:
     El warmup fire-and-forget ya debería haber calentado Aurora mientras el
     usuario completaba el formulario, por lo que lo normal es éxito en el primer
     intento.
+
+    Retorna True si el login fue exitoso, False en cualquier caso de error.
+    NO llama st.switch_page: el llamador lo hace fuera de cualquier try/except
+    para que RerunException de Streamlit se propague correctamente al loop principal.
     """
     intentos = 4
     backoff_s = [5, 10, 15]
@@ -160,7 +164,7 @@ def authenticate_user(email: str, password: str, status_placeholder) -> None:
                     st.session_state.login_error = (
                         "Respuesta inesperada del servidor. Reintenta en unos segundos."
                     )
-                    return
+                    return False
 
                 st.session_state.token = data["access_token"]
                 st.session_state.user_email = email
@@ -182,13 +186,11 @@ def authenticate_user(email: str, password: str, status_placeholder) -> None:
                 except Exception:
                     st.session_state.user_role = "viewer"
 
-                status_placeholder.success("✓ Autenticación exitosa. Redirigiendo...")
-                st.switch_page("pages/1_Estimacion_Demanda.py")
-                return
+                return True
 
             elif response.status_code == 401:
                 st.session_state.login_error = "Correo o contraseña incorrectos."
-                return
+                return False
 
             else:
                 # 5xx o respuestas inesperadas: Aurora puede estar iniciando — reintentar
@@ -199,25 +201,27 @@ def authenticate_user(email: str, password: str, status_placeholder) -> None:
                     f"Error del servidor ({response.status_code}). "
                     "El backend puede estar iniciándose, intenta de nuevo en unos segundos."
                 )
-                return
+                return False
 
         except requests.exceptions.Timeout:
             if intento < intentos - 1:
                 time.sleep(backoff_s[intento])
                 continue
             st.session_state.login_error = "Tiempo de espera agotado. Intenta de nuevo."
-            return
+            return False
 
         except requests.exceptions.ConnectionError:
             if intento < intentos - 1:
                 time.sleep(backoff_s[intento])
                 continue
             st.session_state.login_error = "No se pudo conectar al backend."
-            return
+            return False
 
         except Exception as e:
             st.session_state.login_error = f"Error inesperado: {e}"
-            return
+            return False
+
+    return False
 
 
 # -----------------------------------------------------------------------------
@@ -286,9 +290,13 @@ with st.form("login_form"):
 
 # La autenticación corre FUERA del with-form para que st.info/st.success
 # se rendericen en status_placeholder (encima de la card), no dentro del form.
+# st.switch_page se llama aquí (no dentro de authenticate_user) para que
+# RerunException de Streamlit no quede atrapada por el try/except de la función.
 if submitted:
     if not email or not password:
         st.session_state.login_error = "Por favor completa todos los campos."
         st.rerun()
     else:
-        authenticate_user(email, password, status_placeholder)
+        if authenticate_user(email, password, status_placeholder):
+            status_placeholder.success("✓ Autenticación exitosa. Redirigiendo...")
+            st.switch_page("pages/1_Estimacion_Demanda.py")
