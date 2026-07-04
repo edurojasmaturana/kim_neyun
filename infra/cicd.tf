@@ -146,3 +146,73 @@ output "github_actions_role_arn" {
   description = "ARN a pegar como secret AWS_DEPLOY_ROLE_ARN en GitHub (Settings > Secrets and variables > Actions)."
   value       = aws_iam_role.github_actions_deploy_frontend.arn
 }
+
+# --- Rol para deploy de la API (distinto del frontend, mínimo privilegio) ----
+
+data "aws_iam_policy_document" "github_actions_deploy_api" {
+  statement {
+    sid       = "ECRAuth"
+    actions   = ["ecr:GetAuthorizationToken"]
+    resources = ["*"]
+  }
+
+  statement {
+    sid = "ECRPushApi"
+    actions = [
+      "ecr:BatchCheckLayerAvailability",
+      "ecr:InitiateLayerUpload",
+      "ecr:UploadLayerPart",
+      "ecr:CompleteLayerUpload",
+      "ecr:PutImage",
+      "ecr:BatchGetImage",
+      "ecr:GetDownloadUrlForLayer",
+    ]
+    resources = [aws_ecr_repository.api.arn]
+  }
+
+  statement {
+    sid = "LambdaUpdateCode"
+    actions = [
+      "lambda:UpdateFunctionCode",
+      "lambda:GetFunction",
+    ]
+    resources = [
+      "arn:aws:lambda:${var.region}:${data.aws_caller_identity.current.account_id}:function:${local.name}-api"
+    ]
+  }
+
+  statement {
+    sid = "AlembicDataApi"
+    actions = [
+      "rds-data:ExecuteStatement",
+      "rds-data:BatchExecuteStatement",
+      "rds-data:BeginTransaction",
+      "rds-data:CommitTransaction",
+      "rds-data:RollbackTransaction",
+    ]
+    resources = [aws_rds_cluster.users.arn]
+  }
+
+  statement {
+    sid       = "AlembicSecret"
+    actions   = ["secretsmanager:GetSecretValue"]
+    resources = [aws_secretsmanager_secret.db.arn]
+  }
+}
+
+resource "aws_iam_role" "github_actions_deploy_api" {
+  name               = "github-actions-deploy-api"
+  assume_role_policy = data.aws_iam_policy_document.github_actions_trust.json
+  tags               = local.tags
+}
+
+resource "aws_iam_role_policy" "github_actions_deploy_api" {
+  name   = "github-actions-deploy-api"
+  role   = aws_iam_role.github_actions_deploy_api.id
+  policy = data.aws_iam_policy_document.github_actions_deploy_api.json
+}
+
+output "github_actions_api_role_arn" {
+  description = "ARN a pegar como secret AWS_DEPLOY_API_ROLE_ARN en GitHub."
+  value       = aws_iam_role.github_actions_deploy_api.arn
+}
