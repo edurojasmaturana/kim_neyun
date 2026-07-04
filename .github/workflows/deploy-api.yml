@@ -53,6 +53,7 @@ jobs:
           IMAGE="$ECR_REGISTRY/${{ env.ECR_REPOSITORY }}"
           docker buildx build \
             --platform linux/arm64 \
+            --provenance=false \
             -f app/api/Dockerfile \
             -t "$IMAGE:${{ github.sha }}" \
             -t "$IMAGE:latest" \
