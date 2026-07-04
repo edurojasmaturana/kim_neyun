@@ -29,7 +29,7 @@ def require_auth():
     Llamar al inicio de toda página protegida.
     """
     if not st.session_state.get("token"):
-        st.switch_page("pages/login.py")
+        st.rerun()
 
 
 def handle_api_error_and_maybe_logout(error_msg: str) -> bool:
@@ -43,7 +43,7 @@ def handle_api_error_and_maybe_logout(error_msg: str) -> bool:
         st.session_state.user_email = None
         st.session_state.user_role = None
         st.warning("Tu sesión expiró. Redirigiendo al inicio de sesión...")
-        st.switch_page("pages/login.py")
+        st.rerun()
         return True
     return False
 
@@ -54,7 +54,7 @@ def render_logout_button():
         st.session_state.token = None
         st.session_state.user_email = None
         st.session_state.user_role = None
-        st.switch_page("pages/login.py")
+        st.rerun()
 
 
 # ─────────────────────────────────────────────────────────────────────────────

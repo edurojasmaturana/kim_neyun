@@ -38,7 +38,7 @@ if "login_error" not in st.session_state:
 # -----------------------------------------------------------------------------
 
 if st.session_state.token:
-    st.switch_page("pages/1_Estimacion_Demanda.py")
+    st.rerun()
 
 # -----------------------------------------------------------------------------
 # WARMUP AURORA — fire-and-forget, una vez por sesión
@@ -299,4 +299,4 @@ if submitted:
     else:
         if authenticate_user(email, password, status_placeholder):
             status_placeholder.success("✓ Autenticación exitosa. Redirigiendo...")
-            st.switch_page("pages/1_Estimacion_Demanda.py")
+            st.rerun()
