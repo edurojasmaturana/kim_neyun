@@ -91,32 +91,6 @@ variable "aurora_max_capacity" {
   description = "ACUs máximas (1 ACU = 2 GB RAM). Sobra para una tabla de usuarios."
 }
 
-# --- Encendido/apagado programado del EC2 frontend (ahorro de costo) ---
-
-variable "frontend_timezone" {
-  type        = string
-  default     = "America/Santiago"
-  description = "Zona horaria de los schedules de encendido/apagado del dashboard."
-}
-
-variable "frontend_on_hour" {
-  type        = number
-  default     = 8
-  description = "Hora (0-23, hora Chile) en que se ENCIENDE el EC2 del dashboard."
-}
-
-variable "frontend_off_hour" {
-  type        = number
-  default     = 20
-  description = "Hora (0-23, hora Chile) en que se APAGA el EC2 del dashboard."
-}
-
-variable "frontend_schedule_days" {
-  type        = string
-  default     = "MON-FRI"
-  description = "Días del schedule de encendido/apagado. \"MON-FRI\" (horario laboral) o \"*\" para todos los días (demos en fin de semana)."
-}
-
 variable "domain_name" {
   type        = string
   default     = "kimneyun.cl"
