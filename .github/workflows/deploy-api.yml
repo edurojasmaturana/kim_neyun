@@ -74,7 +74,19 @@ jobs:
         run: |
           set -euo pipefail
           pip install -q -r app/api/requirements.txt
-          cd app && alembic upgrade head
+          # Aurora con min_capacity=0 puede estar auto-paused: reintenta hasta
+          # que despierte (DatabaseResumingException) o falle por otra razón.
+          for attempt in $(seq 1 15); do
+            if (cd app && alembic upgrade head); then
+              break
+            fi
+            if [ "$attempt" -eq 15 ]; then
+              echo "Alembic falló tras 15 intentos" >&2
+              exit 1
+            fi
+            echo "Aurora resumiendo (intento $attempt/15), esperando 15s..."
+            sleep 15
+          done
 
       - name: Actualizar Lambda con la nueva imagen
         run: |
