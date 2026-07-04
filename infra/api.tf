@@ -60,7 +60,7 @@ resource "aws_lambda_function" "api" {
       AURORA_DATABASE    = var.aurora_database
       JWT_SECRET      = random_password.jwt.result
       # Base pública para el enlace de invitación (sirve /invitaciones/aceptar).
-      ACCEPT_BASE_URL = aws_apigatewayv2_stage.default.invoke_url
+      ACCEPT_BASE_URL = "https://${var.domain_name}"
       # Remitente SES para el correo de invitación. Vacío = no envía correo.
       SES_FROM_EMAIL  = "no-reply@${var.domain_name}"
     }

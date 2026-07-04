@@ -27,7 +27,14 @@ docker run -d --name frontend --restart unless-stopped --network kimnet \
 mkdir -p /opt/caddy
 cat > /opt/caddy/Caddyfile <<EOF
 ${domain_name} {
-    reverse_proxy frontend:8501
+    handle /invitaciones/* {
+        reverse_proxy ${api_base_url} {
+            header_up Host {upstream_hostport}
+        }
+    }
+    handle {
+        reverse_proxy frontend:8501
+    }
 }
 EOF
 
