@@ -27,7 +27,9 @@ MIN_PASSWORD_LEN = 8
 
 
 def _utcnow() -> datetime.datetime:
-    return datetime.datetime.now(datetime.timezone.utc)
+    # Aurora Data API devuelve TIMESTAMP WITHOUT TIME ZONE como naive; mantener
+    # naive aquí para que la comparación expires_at <= _utcnow() no falle.
+    return datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
 
 
 def hash_token(raw: str) -> str:
