@@ -91,9 +91,8 @@ data "aws_iam_policy_document" "github_actions_deploy_frontend" {
     resources = ["*"]
   }
 
-  # Encender la instancia si el schedule la apagó antes de un deploy fuera de
-  # horario (ver infra/frontend_schedule.tf). Acotado por tag, no por ID fijo,
-  # porque el ID cambia si Terraform reemplaza la instancia
+  # Encender la instancia si está detenida antes de un deploy. Acotado por tag,
+  # no por ID fijo, porque el ID cambia si Terraform reemplaza la instancia
   # (`user_data_replace_on_change = true` en frontend.tf).
   statement {
     sid       = "StartFrontendByTag"
@@ -175,6 +174,7 @@ data "aws_iam_policy_document" "github_actions_deploy_api" {
     actions = [
       "lambda:UpdateFunctionCode",
       "lambda:GetFunction",
+      "lambda:GetFunctionConfiguration",
     ]
     resources = [
       "arn:aws:lambda:${var.region}:${data.aws_caller_identity.current.account_id}:function:${local.name}-api"
