@@ -315,6 +315,8 @@ if submitted:
         st.session_state.login_error = "Por favor completa todos los campos."
         st.rerun()
     else:
-        if authenticate_user(email, password, status_placeholder):
+        with st.spinner("Verificando credenciales..."):
+            resultado = authenticate_user(email, password, status_placeholder)
+        if resultado:
             status_placeholder.success("✓ Autenticación exitosa. Redirigiendo...")
             st.rerun()
