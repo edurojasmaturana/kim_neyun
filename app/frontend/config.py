@@ -5,6 +5,11 @@ para no duplicar la fuente de verdad que usa el backend.
 """
 
 import os
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
 import sys
 
 # Hace que `shared` (carpeta hermana de `frontend`) sea importable
@@ -40,7 +45,7 @@ PAGE_CONFIG = {
     "page_title": "KIM-NEYÜN",
     "page_icon":  "🫁",
     "layout":     "wide",
-    "initial_sidebar_state": "expanded",
+    "initial_sidebar_state": "collapsed",
 }
 
 # ─────────────────────────────────────────────────────────────────────────────

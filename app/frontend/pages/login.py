@@ -9,9 +9,27 @@ import requests
 import sys
 import os
 import time
+import importlib.util
+from pathlib import Path
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from config import PAGE_CONFIG, LOGIN_ENDPOINT, HEALTH_DB_ENDPOINT
+frontend_dir = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(frontend_dir))
+
+config_path = frontend_dir / "config.py"
+spec = importlib.util.spec_from_file_location("frontend_config", config_path)
+if spec is None or spec.loader is None:
+    raise ImportError(f"No se pudo cargar la configuración desde {config_path}")
+
+config_module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(config_module)
+
+PAGE_CONFIG = getattr(config_module, "PAGE_CONFIG")
+LOGIN_ENDPOINT = getattr(config_module, "LOGIN_ENDPOINT")
+HEALTH_DB_ENDPOINT = getattr(
+    config_module,
+    "HEALTH_DB_ENDPOINT",
+    f"{getattr(config_module, 'BACKEND_URL', 'http://localhost:8000')}/health/db",
+)
 
 # -----------------------------------------------------------------------------
 # CONFIGURACIÓN

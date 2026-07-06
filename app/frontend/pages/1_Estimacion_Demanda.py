@@ -46,7 +46,7 @@ with st.sidebar:
         f'</div>',
         unsafe_allow_html=True,
     )
-    render_connection_badge()
+    
     st.markdown("<div style='margin-top:16px;'></div>", unsafe_allow_html=True)
     render_logout_button()
 
