@@ -51,8 +51,10 @@ with st.sidebar:
     render_logout_button()
 
 logo_html = (
-    f'<img src="{LOGO_UCT}" style="position:absolute;top:16px;right:20px;'
-    f'height:100px;opacity:0.95;filter:brightness(0) invert(1);" alt="UCTemuco"/>'
+    '''<style>
+@media (max-width: 768px) { .logo-uct { height:36px !important; top:10px !important; right:10px !important; } }
+</style>
+<img class="logo-uct" src="''' + LOGO_UCT + '''" style="position:absolute;top:16px;right:20px;height:60px;opacity:0.95;filter:brightness(0) invert(1);" alt="UCTemuco"/>'''  
     if LOGO_UCT else ""
 )
 
