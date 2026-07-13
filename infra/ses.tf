@@ -1,21 +1,7 @@
 # SES: identidad de dominio + registros DKIM en Route53 + permiso IAM al Lambda.
 #
-# PREREQUISITO: la zona Route53 para var.domain_name debe existir en AWS antes
-# de aplicar este archivo (la crea infra/dns.tf, actualmente en PR #7). El data
-# source de abajo la busca por nombre; si no existe, `terraform plan` falla con
-# "no matching Route53 Hosted Zone found".
-#
-# CAVEAT DE SANDBOX: la cuenta SES 735252692369 está en sandbox (Production
-# Access = false). En sandbox SES solo envía a direcciones de destino que estén
-# verificadas en SES. Para enviar a cualquier email hay que solicitar
-# "Production access" en la consola de SES (Account Dashboard → Request
-# production access) — proceso manual que AWS aprueba en 24 h.
-
-# Lookup de la zona Route53 existente (creada por infra/dns.tf).
-data "aws_route53_zone" "ses_lookup" {
-  name         = var.domain_name
-  private_zone = false
-}
+# CAVEAT DE SANDBOX: en sandbox SES solo envía a direcciones verificadas.
+# Para enviar a cualquier email solicitar "Production access" en la consola SES.
 
 # Identidad de dominio SES con Easy DKIM (RSA 2048).
 resource "aws_sesv2_email_identity" "domain" {
@@ -29,9 +15,11 @@ resource "aws_sesv2_email_identity" "domain" {
 }
 
 # 3 registros CNAME de DKIM en Route53 (los genera AWS al crear la identidad).
+# Referencia directa al recurso de dns.tf — no data source, para que funcione
+# en un apply desde cero sin que la zona pre-exista.
 resource "aws_route53_record" "ses_dkim" {
   count   = 3
-  zone_id = data.aws_route53_zone.ses_lookup.zone_id
+  zone_id = aws_route53_zone.main.zone_id
   name    = "${aws_sesv2_email_identity.domain.dkim_signing_attributes[0].tokens[count.index]}._domainkey.${var.domain_name}"
   type    = "CNAME"
   ttl     = 300
