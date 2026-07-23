@@ -105,6 +105,9 @@ def send_invitation_email(to_email: str, link: str, role: str, invited_by: str) 
         headers={
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
+            # Sin User-Agent explícito, urllib manda "Python-urllib/X.Y", que el
+            # Cloudflare frente a la API de Resend bloquea con 403 (error 1010).
+            "User-Agent": "kim-neyun-api/1.0",
         },
     )
 
