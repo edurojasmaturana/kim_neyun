@@ -26,6 +26,33 @@ resource "aws_route53_record" "ses_dkim" {
   records = ["${aws_sesv2_email_identity.domain.dkim_signing_attributes[0].tokens[count.index]}.dkim.amazonses.com"]
 }
 
+# MAIL FROM personalizado: usa "no-reply.<dominio>" como dominio del envelope
+# (Return-Path), de modo que el SPF quede alineado con el dominio propio en vez
+# del de amazonses.com (mejor deliverability y DMARC-friendly). Requiere un MX al
+# endpoint de feedback de SES en la región y un TXT SPF. Si el MX falla, SES cae
+# al MAIL FROM por defecto (USE_DEFAULT_VALUE) — no bloquea el envío.
+resource "aws_sesv2_email_identity_mail_from_attributes" "domain" {
+  email_identity         = aws_sesv2_email_identity.domain.email_identity
+  mail_from_domain       = "no-reply.${var.domain_name}"
+  behavior_on_mx_failure = "USE_DEFAULT_VALUE"
+}
+
+resource "aws_route53_record" "mail_from_mx" {
+  zone_id = aws_route53_zone.main.zone_id
+  name    = aws_sesv2_email_identity_mail_from_attributes.domain.mail_from_domain
+  type    = "MX"
+  ttl     = 300
+  records = ["10 feedback-smtp.${var.region}.amazonses.com"]
+}
+
+resource "aws_route53_record" "mail_from_spf" {
+  zone_id = aws_route53_zone.main.zone_id
+  name    = aws_sesv2_email_identity_mail_from_attributes.domain.mail_from_domain
+  type    = "TXT"
+  ttl     = 300
+  records = ["v=spf1 include:amazonses.com ~all"]
+}
+
 # Permiso para que el Lambda API envíe emails desde el dominio verificado.
 data "aws_iam_policy_document" "api_ses" {
   statement {

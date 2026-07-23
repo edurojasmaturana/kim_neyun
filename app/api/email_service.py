@@ -1,23 +1,26 @@
-"""Envío de emails transaccionales vía AWS SES v2.
+"""Envío de emails transaccionales vía Resend (https://resend.com).
 
-Diseño «best-effort»: si SES no está configurado (SES_FROM_EMAIL vacío) o
-si la llamada falla, se loggea el error pero NO se propaga — el endpoint de
-invitación igual devuelve el link para que el flujo no quede bloqueado.
+Diseño «best-effort»: si Resend no está configurado (RESEND_API_KEY o
+SES_FROM_EMAIL vacíos) o si la llamada falla, se loggea el error pero NO se
+propaga — el endpoint de invitación igual devuelve el link para que el flujo no
+quede bloqueado.
 
-Caveat de sandbox: en una cuenta SES nueva (sandbox), solo se puede enviar a
-direcciones de destino verificadas en SES. Para enviar a cualquier email hay
-que solicitar "Production access" (SES → Account Dashboard → Request production
-access en la consola de AWS).
+Se migró de AWS SES a Resend porque AWS denegó el production access de la cuenta
+nueva dos veces (respuesta genérica). El volumen es bajísimo (transaccional), así
+que Resend cubre de sobra con su tier gratuito y una verificación de dominio
+inmediata. Se usa la API HTTP con urllib de la stdlib para no sumar dependencias.
 """
 
+import json
 import logging
-
-import boto3
-from botocore.exceptions import ClientError
+import urllib.error
+import urllib.request
 
 from shared import config
 
 logger = logging.getLogger("kim.email")
+
+_RESEND_ENDPOINT = "https://api.resend.com/emails"
 
 _SUBJECT = "Te invitaron a KIM-NEYÜN"
 
@@ -65,15 +68,17 @@ Crea tu cuenta en el siguiente enlace (caduca en {ttl_hours} h, un solo uso):
 
 
 def send_invitation_email(to_email: str, link: str, role: str, invited_by: str) -> bool:
-    """Envía el correo de invitación vía SES v2.
+    """Envía el correo de invitación vía Resend.
 
-    Devuelve True si se envió correctamente, False si SES no está configurado
+    Devuelve True si se envió correctamente, False si Resend no está configurado
     o si ocurrió un error (el error se loggea pero no se propaga).
     """
     from_email = config.SES_FROM_EMAIL
-    if not from_email:
+    api_key = config.RESEND_API_KEY
+    if not from_email or not api_key:
         logger.warning(
-            "SES_FROM_EMAIL no configurado; se omite el envío de correo a %s", to_email
+            "Envío de correo deshabilitado (falta RESEND_API_KEY o SES_FROM_EMAIL); "
+            "se omite el correo a %s", to_email
         )
         return False
 
@@ -85,26 +90,34 @@ def send_invitation_email(to_email: str, link: str, role: str, invited_by: str) 
         invited_by=invited_by, role=role, link=link, ttl_hours=ttl_hours
     )
 
+    payload = json.dumps({
+        "from": f"KIM-NEYÜN <{from_email}>",
+        "to": [to_email],
+        "subject": _SUBJECT,
+        "html": html_body,
+        "text": text_body,
+    }).encode("utf-8")
+
+    request = urllib.request.Request(
+        _RESEND_ENDPOINT,
+        data=payload,
+        method="POST",
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        },
+    )
+
     try:
-        client = boto3.client("sesv2", region_name=config.AWS_REGION)
-        client.send_email(
-            FromEmailAddress=from_email,
-            Destination={"ToAddresses": [to_email]},
-            Content={
-                "Simple": {
-                    "Subject": {"Data": _SUBJECT, "Charset": "UTF-8"},
-                    "Body": {
-                        "Html": {"Data": html_body, "Charset": "UTF-8"},
-                        "Text": {"Data": text_body, "Charset": "UTF-8"},
-                    },
-                }
-            },
-        )
-        logger.info("Correo de invitación enviado a %s", to_email)
+        with urllib.request.urlopen(request, timeout=10) as resp:
+            body = resp.read().decode("utf-8")
+        message_id = json.loads(body).get("id") if body else None
+        logger.info("Correo de invitación enviado a %s (id=%s)", to_email, message_id)
         return True
-    except ClientError as exc:
+    except urllib.error.HTTPError as exc:
+        detail = exc.read().decode("utf-8", "replace")
         logger.error(
-            "Error SES enviando correo a %s: %s", to_email, exc.response["Error"]["Message"]
+            "Error Resend enviando correo a %s: HTTP %s %s", to_email, exc.code, detail
         )
         return False
     except Exception as exc:

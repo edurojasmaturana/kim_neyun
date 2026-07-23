@@ -20,6 +20,10 @@ data "aws_subnets" "default" {
     name   = "default-for-az"
     values = ["true"]
   }
+  filter {
+    name   = "availabilityZone"
+    values = ["us-east-1a", "us-east-1b", "us-east-1c", "us-east-1d", "us-east-1f"]
+  }
 }
 
 resource "aws_security_group" "frontend" {

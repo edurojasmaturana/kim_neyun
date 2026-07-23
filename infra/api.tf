@@ -58,11 +58,14 @@ resource "aws_lambda_function" "api" {
       AURORA_CLUSTER_ARN = aws_rds_cluster.users.arn
       AURORA_SECRET_ARN  = aws_secretsmanager_secret.db.arn
       AURORA_DATABASE    = var.aurora_database
-      JWT_SECRET      = random_password.jwt.result
+      JWT_SECRET         = random_password.jwt.result
       # Base pública para el enlace de invitación (sirve /invitaciones/aceptar).
       ACCEPT_BASE_URL = "https://${var.domain_name}"
-      # Remitente SES para el correo de invitación. Vacío = no envía correo.
-      SES_FROM_EMAIL  = "no-reply@${var.domain_name}"
+      # Remitente del correo de invitación (dirección de un dominio verificado en Resend).
+      SES_FROM_EMAIL = "no-reply@${var.domain_name}"
+      # API key de Resend, leída de SSM SecureString (fuente de verdad cifrada;
+      # nunca vive en el repo). Ver resend.tf. Vacío = no envía correo.
+      RESEND_API_KEY = data.aws_ssm_parameter.resend_api_key.value
     }
   }
 

@@ -79,10 +79,17 @@ ALERTA_MIN_SEMANAS = int(os.environ.get("ALERTA_MIN_SEMANAS", "12"))
 # suficiente para calcular sus percentiles (el PoC usaba 150 en el frontend).
 ALERTA_THRESHOLD = int(os.environ.get("ALERTA_THRESHOLD", "150"))
 
-# --- Envío de correo (SES v2) ---
-# Dirección remitente. Vacío = envío deshabilitado (el endpoint igual devuelve
-# el link). Requiere que el dominio/dirección esté verificado en SES y que el
-# rol del Lambda tenga permiso ses:SendEmail.
+# --- Envío de correo (Resend) ---
+# Se migró de SES a Resend: AWS denegó production access dos veces en la cuenta
+# nueva (respuesta genérica, sin criterio) y el volumen es bajísimo (transaccional,
+# decenas/mes), así que Resend —con verificación de dominio inmediata y tier
+# gratuito— es más práctico. El dominio kimneyun.cl se verifica en Resend con sus
+# propios registros DNS (SPF/DKIM), independientes de los de SES.
+#
+# API key de Resend. Vacío = envío deshabilitado (el endpoint igual devuelve el link).
+RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
+# Dirección remitente (debe pertenecer a un dominio verificado en Resend). Se
+# mantiene el nombre SES_FROM_EMAIL por compatibilidad con la env var existente.
 SES_FROM_EMAIL = os.environ.get("SES_FROM_EMAIL", "")
 
 # Coordenadas de referencia (Temuco) para Open-Meteo.
