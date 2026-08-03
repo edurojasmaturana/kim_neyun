@@ -1,7 +1,6 @@
 """
 tools/deis.py — Módulo 1: descarga y limpieza DEIS (salud).
 
-Reproduce celda 44 del notebook RespiratorIA2.ipynb:
 - Lectura del parquet DEIS (URL datos.gob.cl o path local).
 - Filtro por comunas (Temuco, Padre Las Casas).
 - Filtro por 8 causas exactas (literal DEIS).
@@ -9,7 +8,6 @@ Reproduce celda 44 del notebook RespiratorIA2.ipynb:
 - Construcción de df_backend (nivel hospital) y df_aglomerado (nivel ciudad).
 - Export CSV a Backend_Data/.
 
-Referencia spec: PIPELINE_SPEC.md §2.
 """
 from __future__ import annotations
 
