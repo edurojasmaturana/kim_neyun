@@ -1,14 +1,3 @@
-"""
-tools/features.py — Módulo 3: merge + lags (réplica 1:1 del notebook).
-
-Reproduce celda 46 (final) del notebook RespiratorIA2.ipynb:
-- Inner join df_aglomerado + df_env_final sobre (Anio, SemanaEstadistica).
-- Filtro Anio < descartar_anios_mayores_a + 1.
-- Creación de Lag1, Lag2 sobre las 12 columnas ambientales.
-- dropna (elimina 2 primeras semanas por Lag2).
-
-Referencia spec: PIPELINE_SPEC.md §4.
-"""
 from __future__ import annotations
 
 import logging
@@ -27,7 +16,7 @@ def build_features(df_aglomerado: pd.DataFrame,
     """
     Construye df_modelos a partir de salud (aglomerado) + ambiente.
 
-    Réplica 1:1 de celda 46 (final) del notebook:
+   
         df_ml = pd.merge(df_aglomerado, df_env_final, on=['Anio', 'SemanaEstadistica'], how='inner')
         df_ml = df_ml[df_ml['Anio'] < 2026].sort_values(...).reset_index(drop=True)
         for col in cols_env:
