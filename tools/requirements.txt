@@ -1,5 +1,4 @@
-# RespiratorIA 2 — requirements.txt
-# Instalar con: pip install -r requirements.txt
+# # Instalar con: pip install -r requirements.txt
 #
 # Chronos no está en PyPI. Instalar aparte:
 #   pip install "git+https://github.com/amazon-science/chronos-forecasting.git"
