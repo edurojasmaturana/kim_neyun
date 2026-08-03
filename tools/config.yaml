@@ -1,0 +1,169 @@
+# =============================================================================
+# RespiratorIA 2 — Pipeline anual (HZF Hybrid + Lags)
+# Configuración operacional. Cargar con `yaml.safe_load`.
+# =============================================================================
+
+study:
+  name: "Temuco_Padre_Las_Casas"      # se construye a partir de comunas
+  comunas_objetivo: ['Temuco', 'Padre Las Casas']
+  anio_inicio: 2021                    # filtro de año para entrenamiento
+  anio_fin: 2025
+  anio_test_inicio: 2024               # primera semana de test = 2024-W01
+  descartar_anios_mayores_a: 2025      # equivalente a Anio < 2026 del notebook
+
+# -----------------------------------------------------------------------------
+# Módulo 1: Datos de salud (DEIS)
+# -----------------------------------------------------------------------------
+deis:
+  # URL oficial en datos.gob.cl (formato parquet)
+  # Actualizada 2026-07-31: dataset_id y resource_id vigentes a julio 2026.
+  # Para buscar la URL vigente en el futuro:
+  #   curl 'https://datos.gob.cl/api/3/action/package_search?q=urgencia+respiratoria&rows=5'
+  url: "https://datos.gob.cl/dataset/606ef5bb-11d1-475b-b69f-b980da5757f4/resource/ae6c9887-106d-4e98-8875-40bf2b836041/download/at_urg_respiratorio_semanal.parquet"
+  # Path local alternativo (si se descargó a mano). Si existe, se prefiere sobre url.
+  local_path: "data/raw/at_urg_respiratorio_semanal.parquet"
+  # 8 causas exactas (literal DEIS) — ver PIPELINE_SPEC §2.2
+  causas_interes:
+    - 'Influenza (J09-J11)'
+    - 'Otra causa respiratoria no contenidas en las categorías anteriores (J22; J30-J39, J47, J60-J98)'
+    - 'Crisis obstructiva bronquial (J40-J46)'
+    - 'Bronquitis/bronquiolitis aguda (J20-J21)'
+    - 'IRA Alta (J00-J06)'
+    - 'Neumonía (J12-J18)'
+    - 'TOTAL ATENCIONES POR COVID-19, Virus Identificado U07.1'
+    - 'TOTAL ATENCIONES POR COVID-19 Virus no Identificado U07.2'
+  # Diccionario traducción (no modificar, es lo que define los nombres de columnas)
+  cause_translation:
+    'Influenza (J09-J11)': 'Influenza'
+    'Otra causa respiratoria no contenidas en las categorías anteriores (J22; J30-J39, J47, J60-J98)': 'Other Respiratory Causes'
+    'Crisis obstructiva bronquial (J40-J46)': 'Bronchial Obstructive Crisis'
+    'Bronquitis/bronquiolitis aguda (J20-J21)': 'Acute Bronchitis/Bronchiolitis'
+    'IRA Alta (J00-J06)': 'Upper Respiratory Infection'
+    'Neumonía (J12-J18)': 'Pneumonia'
+    'TOTAL ATENCIONES POR COVID-19, Virus Identificado U07.1': 'COVID-19 (Confirmed)'
+    'TOTAL ATENCIONES POR COVID-19 Virus no Identificado U07.2': 'COVID-19 (Suspected)'
+
+# -----------------------------------------------------------------------------
+# Módulo 2: Datos ambientales (SINCA)
+# -----------------------------------------------------------------------------
+# ⚠️ DECISIÓN 2026-07-31: el endpoint `apub.tsca` de SINCA está caído (HTTP 404).
+# El CGI actual solo renderiza GIFs server-side, no hay forma de obtener CSV
+# programáticamente. Por eso el modo por defecto es `local_csv`: el usuario
+# descarga los 7 CSVs a mano desde la ficha de la estación y los deja en
+# `local_dir`. El modo `api` se mantiene como fallback por si SINCA revive.
+# Ver `data/raw/sinca/README.md` para instrucciones de descarga manual.
+sinca:
+  # Modo de obtención: 'local_csv' (default, recomendado) | 'api' (fallback)
+  mode: local_csv
+  # Directorio local con los 7 CSVs descargados manualmente desde SINCA
+  local_dir: "data/raw/sinca"
+  # Solo estación Las Encinas (id=186) — confirmado por usuario
+  station_id: 186
+  # Estrategia de faltantes: 'report' (no imputar, solo reportar) | 'impute'
+  missing_strategy: report
+  # Parámetros de los contaminantes a descargar
+  contaminantes:
+    - {nombre: 'Monoxido',   param: 'CO',  agregacion: 'mean_max'}
+    - {nombre: 'PM25',       param: 'PM2.5', agregacion: 'mean_max'}
+    - {nombre: 'PM10',       param: 'PM10', agregacion: 'mean_max'}
+  # Parámetros meteorológicos
+  meteorologicas:
+    - {nombre: 'Temperatura', param: 'TEMP',  agregacion: 'mean_max', corregir_sensor: true}
+    - {nombre: 'Vel',         param: 'WSPEED',agregacion: 'mean_max'}
+    - {nombre: 'presion',     param: 'PRESS', agregacion: 'mean_max'}
+    - {nombre: 'precipitaciones', param: 'PP', agregacion: 'sum'}
+
+# -----------------------------------------------------------------------------
+# Módulo 2b: Fallback ambientales (Open-Meteo) — opcional
+# -----------------------------------------------------------------------------
+open_meteo:
+  # Coordenadas Temuco
+  lat: -38.7359
+  lon: -72.5904
+  variables_diarias:
+    - 'temperature_2m_max'
+    - 'temperature_2m_min'
+    - 'wind_speed_10m_max'
+    - 'precipitation_sum'
+    - 'surface_pressure_mean'
+  # Si SINCA cubre >90% de los días, no se usa Open-Meteo
+  fallback_threshold: 0.90
+
+# -----------------------------------------------------------------------------
+# Módulo 3: Features (lags)
+# -----------------------------------------------------------------------------
+features:
+  # Solo se aplica lag a las ambientales (no a salud) — ver PIPELINE_SPEC §4.2
+  lag_orders: [1, 2]
+  dropna: true
+
+# -----------------------------------------------------------------------------
+# Módulo 4: Entrenamiento (Chronos + ML)
+# -----------------------------------------------------------------------------
+train:
+  chronos:
+    model_name: "amazon/chronos-t5-small"
+    device_map: "auto"
+    torch_dtype: "bfloat16"
+    num_samples: 50
+    step_size: 4
+    quantile: 0.5
+  scaler:
+    type: "StandardScaler"     # sin parámetros extra (z-score puro)
+  pca:
+    n_components: 0.90         # varianza explicada objetivo
+    random_state: 42
+  ml_competencia:
+    cv: 3
+    scoring: "neg_mean_absolute_error"
+    n_jobs: -1
+    modelos:
+      Ridge:
+        alpha: [0.1, 1.0, 10.0]
+      RandomForest:
+        n_estimators: [50]
+        max_depth: [3, 5]
+        min_samples_leaf: [1]
+        random_state: 42
+      XGBoost:
+        n_estimators: [50, 100]
+        max_depth: [3, 5]
+        learning_rate: [0.01, 0.1]
+        random_state: 42
+        objective: "reg:squarederror"
+  rolling_window_residuo: 4   # media móvil para residuo_train
+
+# -----------------------------------------------------------------------------
+# Módulo 5: Champion / Challenger
+# -----------------------------------------------------------------------------
+retrain:
+  # Política: 'drift_only' (solo reentrenar si drift significativo) | 'always' | 'never'
+  policy: drift_only
+  # Umbral de drift: MAE relativo. Si |MAE_champion - MAE_challenger| / MAE_champion > threshold, reentrenar.
+  drift_threshold: 0.10
+  # Carpeta de modelos champion (los .pkl exportados por el notebook)
+  champion_dir: "Modelos_Lags"
+  # Carpeta de modelos challenger (entrenados nuevos)
+  challenger_dir: "Modelos_Challenger"
+  # Reporte Markdown
+  report_path: "Resultados_Paper_Lags/Champion_Challenger_Report.md"
+
+# -----------------------------------------------------------------------------
+# Salidas
+# -----------------------------------------------------------------------------
+output:
+  # Raíz del estudio (equivalente a Estudio_Temuco_Padre_Las_Casas/ del notebook)
+  base_dir: "Estudio_Temuco_Padre_Las_Casas"
+  subdirs:
+    backend_data: "Backend_Data"
+    resultados_lags: "Resultados_Paper_Lags"
+    resultados_nolags: "Resultados_Paper_NoLags"
+    modelos_lags: "Modelos_Lags"
+    modelos_nolags: "Modelos_NoLags"
+
+# -----------------------------------------------------------------------------
+# Logging
+# -----------------------------------------------------------------------------
+logging:
+  level: INFO                  # DEBUG | INFO | WARNING | ERROR
+  file: "logs/respiratoria.log"

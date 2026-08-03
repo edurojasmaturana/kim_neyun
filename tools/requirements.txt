@@ -1,0 +1,35 @@
+# RespiratorIA 2 — requirements.txt
+# Instalar con: pip install -r requirements.txt
+#
+# Chronos no está en PyPI. Instalar aparte:
+#   pip install "git+https://github.com/amazon-science/chronos-forecasting.git"
+
+# === Core data ===
+pandas>=2.0
+numpy>=1.24
+pyarrow>=14.0           # lectura parquet
+pyyaml>=6.0             # config.yaml
+
+# === HTTP ===
+requests>=2.31          # API SINCA, Open-Meteo, descarga DEIS
+
+# === ML ===
+scikit-learn>=1.3       # StandardScaler, PCA, GridSearchCV, Ridge, RF
+xgboost>=2.0            # XGBRegressor
+joblib>=1.3             # serialización .pkl (compatible con notebook)
+
+# === Foundation model ===
+torch>=2.1              # Chronos backbone
+# chronos-forecasting se instala desde git (ver arriba)
+transformers>=4.35      # dependencia de Chronos
+
+# === Visualización (paper) ===
+matplotlib>=3.7
+seaborn>=0.13
+
+# === Logging / CLI ===
+python-dateutil>=2.8
+tqdm>=4.66
+
+# === Opcional: SHAP (no usado en pipeline core, solo exploratorio) ===
+# shap>=0.43
