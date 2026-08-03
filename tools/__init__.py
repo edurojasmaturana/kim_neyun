@@ -1,10 +1,4 @@
 """
-RespiratorIA 2 — Pipeline anual (HZF Hybrid + Lags)
-====================================================
-
-Capa de operacionalización del modelo Chronos-T5 Híbrido + Lags descrito en el
-notebook `RespiratorIA2.ipynb`. Ver `PIPELINE_SPEC.md` para la especificación
-lado-a-lado con el notebook.
 
 API pública:
     from tools import (
