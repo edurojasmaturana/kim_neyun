@@ -1,7 +1,6 @@
 """
 tools/sinca.py — Módulo 2a: extracción SINCA (estación Las Encinas, id=186).
 
-Reproduce celda 46 del notebook RespiratorIA2.ipynb:
 - `limpiar_valor()` y `procesar_sinca_df()` son réplica literal del notebook.
 - Agregación semanal ISO (Anio, SemanaEstadistica).
 - Prioridad contaminantes: Registros validados > preliminares > no validados.
