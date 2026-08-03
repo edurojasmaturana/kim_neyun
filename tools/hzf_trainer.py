@@ -1,7 +1,7 @@
 """
 tools/hzf_trainer.py — Módulo 4: entrenamiento Chronos T5 Hybrid.
 
-Reproduce celda 49 del notebook RespiratorIA2.ipynb:
+
 - Para cada target en cols_epidemiologicas (13 targets):
     * Saltar si todos ceros (caso COVID-19 Suspected).
     * Split temporal: train = 2021-2023, test = 2024-2025.
@@ -63,7 +63,7 @@ def wmape(real: np.ndarray, pred: np.ndarray) -> float:
 # ---------------------------------------------------------------------------
 
 class HZFTrainer:
-    """Entrenador Chronos-T5 Hybrid + Lags (réplica 1:1 de celda 49)."""
+    """Entrenador Chronos-T5 Hybrid + Lags ."""
 
     def __init__(self, cfg: Config):
         self.cfg = cfg
@@ -99,7 +99,7 @@ class HZFTrainer:
         Rolling forecast con step_size del config. Devuelve predicciones para
         las `horizon` semanas de test.
 
-        Réplica literal de celda 49 §A:
+        
             step_size = 4
             pred_chronos_list = []
             for i in range(0, horizon, step_size):
@@ -177,7 +177,7 @@ class HZFTrainer:
         GridSearchCV para Ridge/RandomForest/XGBoost. Devuelve (nombre_campeon,
         modelo_campeon, scores).
 
-        Réplica literal de celda 49 §C. Los constructores de los modelos llevan
+       Los constructores de los modelos llevan
         random_state=42 (y XGBoost objective='reg:squarederror'); los grids
         solo contienen los hiperparámetros a buscar.
         """
@@ -239,7 +239,7 @@ class HZFTrainer:
         """
         Entrena un target completo. Devuelve un dict con métricas + paths.
 
-        Réplica 1:1 de celda 49 (loop interno).
+        
         """
         # Saltar si todos ceros (celda 49 §skip)
         if (df_paper[target] == 0).all():
